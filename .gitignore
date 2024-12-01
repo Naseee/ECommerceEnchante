@@ -1,0 +1,23 @@
+# Build artifacts
+bin/
+obj/
+tmp/
+
+# IDE specific files
+.vscode/
+.vs/
+.idea/
+
+# Log files
+*.log
+
+# Sensitive data
+appsettings.json
+launchSettings.json
+passwords.txt
+
+# DLL files
+*.dll
+
+# Executables
+*.exe
