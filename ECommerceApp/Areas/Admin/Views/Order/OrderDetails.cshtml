@@ -1,0 +1,198 @@
+﻿@model ECommerceApp.ViewModels.Models.OrderVM
+@using ECommerceApp.Utility
+
+<form method="post">
+    <input asp-for="OrderHeader.Id" hidden />
+    <div class="container my-5">
+        <div class="card shadow-lg border-0">
+            <!-- Header Section -->
+            <div class="card-header bg-primary bg-gradient text-white py-4">
+                <div class="row">
+                    <div class="col-6">
+                        <h5 class="pt-2">Order Summary</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a asp-action="UserOrderHistory" class="btn btn-outline-light btn-sm">Back to Orders</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Section -->
+            <div class="card-body p-5">
+                <div class="container">
+                    <div class="row">
+                        <!-- Order Header Section -->
+                        <div class="col-12 col-md-4">
+                            <div class="row my-3">
+                                <h4 class="text-info">Order #@Model.OrderHeader.Id</h4>
+                            </div>
+                            <div class="row my-3">
+                                <div class="d-flex align-items-center">
+                                    <h6 class="text-info mb-0">Order Status:</h6>
+                                    <div class="alert alert-info ms-3 mb-0">
+                                        @Model.OrderHeader.OrderStatus
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row my-3">
+                                <h6 class="text-info">Order Date: @Model.OrderHeader.OrderDate.ToString("MM/dd/yyyy")</h6>
+                            </div>
+
+                            <!-- Action Buttons for Admin -->
+                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusApproved)
+                            {
+                                <button asp-action="StartProcessing" type="submit" class="btn btn-danger form-control my-1">Start Processing</button>
+                            }
+                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusInProcess)
+                            {
+                                <button asp-action="ShipOrder" type="submit" class="btn btn-danger form-control my-1">Ship Order</button>
+                            }
+                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusShipped)
+                            {
+                                <button asp-action="DeliverOrder" type="submit" class="btn btn-danger form-control my-1">Deliver Order</button>
+                            }
+                        </div>
+
+                        <!-- Order Items Section -->
+                        <div class="col-12 mt-4">
+                            <h5 class="text-info">Order Items:</h5>
+                            @foreach (var item in Model.OrderDetail)
+                            {
+                                <div class="row border-bottom pb-3 mb-3">
+                                    <div class="col-lg-2 text-center py-2">
+                                        @if (item.Product.ProductImages != null && item.Product.ProductImages.Count > 0)
+                                        {
+                                            var imageUrl = item.Product.ProductImages.FirstOrDefault()?.ImageUrl;
+                                            <img src="@imageUrl" class="img-fluid" style="border: 1px solid black; border-radius: 5px;" alt="Product Image" />
+                                        }
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <h5 class="text-uppercase text-secondary"><strong>@item.Product.Name</strong></h5>
+                                        <p><small>@item.Product.Description</small></p>
+                                    </div>
+                                    <div class="col-lg-4 text-center">
+                                        <p><strong>Quantity:</strong> @item.Quantity</p>
+                                        <p><strong>Total:</strong> @((item.Price * item.Quantity).ToString("C"))</p>
+                                    </div>
+                                    <div class="col-lg-4 text-center">
+                                        @if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled &&
+                                       Model.OrderHeader.OrderStatus != StaticDetails.StatusShipped &&
+                                       Model.OrderHeader.OrderStatus != StaticDetails.StatusDelivered &&
+                                       Model.OrderHeader.OrderStatus != StaticDetails.StatusRefunded)
+                                        {
+                                            <button asp-action="CancelOrder" type="submit" class="btn btn-danger form-control my-1">Cancel</button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Shipping Address Section -->
+                        <div class="col-12 col-lg-6 mt-5">
+                            <h5 class="text-info">Shipping Address:</h5>
+                            @if (Model.Addresses != null && Model.Addresses.Any())
+                            {
+                                var shippingAddress = Model.Addresses.FirstOrDefault(a => a.AddressId == Model.OrderHeader.AddressId);
+                                @if (shippingAddress != null)
+                                {
+                                    <div class="card shadow-sm">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="Street">Street</label>
+                                                <input asp-for="OrderHeader.Address.Street" type="text" class="form-control" value="@shippingAddress.Street" readonly />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="City">City</label>
+                                                <input asp-for="OrderHeader.Address.City" type="text" class="form-control" value="@shippingAddress.City" readonly />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="State">State</label>
+                                                <input asp-for="OrderHeader.Address.State" type="text" class="form-control" value="@shippingAddress.State" readonly />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="PostalCode">Postal Code</label>
+                                                <input asp-for="OrderHeader.Address.PostalCode" type="text" class="form-control" value="@shippingAddress.PostalCode" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    No shipping address available.
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Order Summary Section -->
+                        <div class="col-12 col-lg-5 offset-lg-1 mt-5">
+                            <h4 class="text-info">Order Summary:</h4>
+                            <ul class="list-group my-3">
+                                @if (Model.OrderHeader.OrderTotal > Model.OrderHeader.DiscountedTotal)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">SubTotal (USD):</span>
+                                        <strong class="text-info">@((Model.OrderHeader.DiscountedTotal - Model.OrderHeader.ShippingCharge).ToString())</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Discounts Applied (USD):</span>
+                                        <strong class="text-info">@((Model.OrderHeader.OrderTotal - Model.OrderHeader.DiscountedTotal).ToString("C"))</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Coupon Deduction (USD):</span>
+                                        <strong class="text-info">$ @Model.OrderHeader.CouponDiscount.ToString()</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Shipping Charge (USD):</span>
+                                        <strong class="text-info">$ @Model.OrderHeader.ShippingCharge.ToString()</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Total (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.DiscountedTotal.ToString("C")</strong>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">SubTotal (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Shipping Charge (USD):</span>
+                                        <strong class="text-info">@((Model.OrderHeader.OrderTotal > 100) ? "$10.00" : "Free")</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Total (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Order Button (for Admin users) -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <button asp-action="UpdateOrderDetails" type="submit" class="btn btn-danger form-control">Update Details</button>
+        </div>
+    </div>
+</form>
+
+@functions {
+    public string GetPaymentMethodClass(string paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            "Visa" => "alert-primary",    // Style for Visa
+            "COD" => "alert-warning",    // Style for Cash on Delivery
+            "Wallet" => "alert-success", // Style for Wallet
+            "PayPal" => "alert-info",    // Style for PayPal
+            _ => "alert-secondary"       // Default style
+        };
+    }
+}

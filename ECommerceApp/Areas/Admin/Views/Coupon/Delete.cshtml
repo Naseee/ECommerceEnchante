@@ -1,0 +1,49 @@
+﻿@model ECommerceApp.Models.Coupon
+
+<form method="post" class="container my-5 p-4 shadow-sm border rounded bg-light">
+    <!-- Header Section -->
+    <div class="mb-4 text-center">
+        <h2 class="text-danger">Delete Coupon</h2>
+        <p class="text-muted">Are you sure you want to delete this coupon? This action cannot be undone.</p>
+    </div>
+
+    <input asp-for="Id" hidden />
+
+    <!-- Coupon Code -->
+    <div class="mb-3">
+        <label asp-for="Code" class="form-label fw-bold">Coupon Code</label>
+        <input asp-for="Code" class="form-control" readonly />
+    </div>
+
+    <!-- Discount Percentage -->
+    <div class="mb-3">
+        <label asp-for="DiscountPercentage" class="form-label fw-bold">Discount Percentage</label>
+        <input asp-for="DiscountPercentage" class="form-control" readonly />
+    </div>
+
+    <!-- Start Date -->
+    <div class="mb-3">
+        <label asp-for="StartDate" class="form-label fw-bold">Start Date</label>
+        <input asp-for="StartDate" class="form-control" readonly />
+    </div>
+
+    <!-- End Date -->
+    <div class="mb-3">
+        <label asp-for="EndDate" class="form-label fw-bold">End Date</label>
+        <input asp-for="EndDate" class="form-control" readonly />
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row g-2 mt-4">
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-danger w-100">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+        <div class="col-md-6">
+            <a asp-controller="Coupon" asp-action="Index" class="btn btn-secondary w-100">
+                <i class="fas fa-arrow-left"></i> Back To List
+            </a>
+        </div>
+    </div>
+</form>

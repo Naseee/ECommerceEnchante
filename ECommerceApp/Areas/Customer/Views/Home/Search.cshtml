@@ -1,0 +1,65 @@
+﻿@model ECommerceApp.Models.ViewModels.HomeVM
+
+<div class="product-section" style="display: flex; flex-wrap: wrap; gap: 20px;">
+    @foreach (var product in Model.Products)
+    {
+        <div style="width: 250px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; text-align: center;">
+            @if (product.ProductImages != null && product.ProductImages.Count > 0)
+            {
+                <img src="@product.ProductImages.FirstOrDefault().ImageUrl" style="width: 100%; border-radius: 5px; margin-bottom: 10px;" alt="Product Image" />
+            }
+
+            <p style="font-weight: bold; font-size: 18px;">@product.Name</p>
+
+             @if(product.ProductOffers!=null)
+              {
+               foreach (var offer in product.ProductOffers)
+                            {         
+                            var activeOffer = product.ProductOffers?
+                            .Select(po => po.Offer)
+                            .FirstOrDefault(offer => offer.StartDate <= DateTime.UtcNow 
+                                && offer.EndDate >= DateTime.UtcNow);
+                        @if(activeOffer!=null)
+                        {
+                            var discountedPrice = product.Price * (1 - (double)(activeOffer.DiscountPercentage / 100));
+                            <p style="font-size: 16px;text-decoration:line-through">Price: @product.Price</p>
+                            <p style="font-size: 16px;">Discounted Price: @discountedPrice (@activeOffer.DiscountPercentage% off)</p>
+                        }
+                  }
+             }
+            @if(product.Category.CategoryOffers!=null)
+              {
+                  foreach (var offer in product.Category.CategoryOffers)
+                            {
+                  var activeOffer = product.Category.CategoryOffers?
+                            .Select(co => co.Offer)
+                            .FirstOrDefault(offer => offer.StartDate <= DateTime.UtcNow 
+                                && offer.EndDate >= DateTime.UtcNow);
+                        @if(activeOffer!=null)
+                        {
+                            var discountedPrice = product.Price * (1 - (double)(activeOffer.DiscountPercentage / 100));
+                            <p style="font-size: 16px;text-decoration:line-through">Price: @product.Price</p>
+                            <p style="font-size: 16px;">Discounted Price: @discountedPrice (@activeOffer.DiscountPercentage% off)</p>
+                        }
+                  }
+             }  
+            else
+            {
+                <p style="font-size: 16px;">Price: @product.Price</p>
+            }
+
+
+            @if (@product.product_Quantity > 5)
+            {
+
+                <a asp-controller="Home" asp-action="Details" asp-route-Id="@product.Id" class="btn btn-dark">Details</a>
+
+            }
+            else
+            {
+                <button class="btn btn-danger" disabled>Out of Stock</button>
+            }
+
+        </div>
+    }
+</div>

@@ -1,0 +1,121 @@
+﻿@model IEnumerable<ECommerceApp.Models.Product>
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["success"]
+    </div>
+}
+@{
+    var sortorder = Context.Request.Query["sortorder"];
+    var price = "text-primary";
+    var name = "text-primary";
+    
+    
+    switch(sortorder)
+    {
+        case "price":
+            price = "active text-white bg-primary";
+            break;
+        
+        
+        default:
+            name = "active text-white bg-primary";
+            break;
+    }
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Product List</h2>
+        </div>
+        <div class="col-md-6">
+            <a asp-controller="Product" asp-action="Create" class="btn btn-primary">Add Product</a>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between pb-5 pt-2">
+            <span></span>
+            <ul class="list-group list-group-horizontal-sm">
+                <a style="text-decoration:none;" asp-controller="Product" asp-action="Index" asp-route-status="price">
+                <li class="list-group-item  @price">Price</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Product" asp-action="Index" asp-route-status="name">
+                <li class="list-group-item @name">Name</li>
+                </a>
+               
+                <a style="text-decoration:none;" asp-controller="Product" asp-action="Index" asp-route-status="all">
+                
+                </a>
+            </ul>
+
+        </div>
+
+    </div>
+    <table id="myTable" class="table table-bordered table-striped">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Category</th>
+               <th>Product Quantity</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+@section scripts {
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+    <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script>
+
+
+        $(document).ready(function () {
+            var url = window.location.search;
+            var sortorder = "name";
+            if (url.includes("price")) {
+                sortorder = "price";
+            }
+            loadDatatable(sortorder);
+        });
+
+        function loadDatatable(sortorder) {
+            if ($.fn.DataTable.isDataTable('#myTable')) {
+                $('#myTable').DataTable().destroy();
+            }
+            
+
+            $('#myTable').DataTable({
+                "ajax": "/admin/product/getproducts?sortorder=" + sortorder,
+                "processing": true,
+                "serverSide": true,
+                "searching": true,
+                "responsive": true,
+                "ordering": false,
+                "error": function (xhr, error, code) {
+                    console.error("AJAX error:", error, code, xhr.responseText);
+                },
+                "columns": [
+                    { "data": "name" },
+                    { "data": "description" },
+                    { "data": "price" },
+                    { "data": "category.name" },
+                    { "data": "product_Quantity" },
+                    {
+                        "data": "id",
+                        "render": function (data) {
+                            return '<a href="/admin/product/edit?id=' + data + '" class="btn btn-primary">Edit</a>' +
+                                '<a href="/admin/product/delete?id=' + data + '" class="btn btn-danger">Delete</a>';
+                        }
+                    }
+                ]
+            });
+        }
+
+
+    </script>
+}

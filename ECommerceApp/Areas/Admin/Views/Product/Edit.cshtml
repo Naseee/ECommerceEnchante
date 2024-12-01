@@ -1,0 +1,69 @@
+﻿@model ECommerceApp.Models.ViewModels.ProductVM
+
+<div class="container mt-5">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <div class="row d-flex justify-content-between">
+            <!-- Left Column: Form Inputs -->
+            <div class="col-md-6">
+                <div>
+                    <h2 class="text-center mb-4">Edit Product</h2>
+                </div>
+                <input asp-for="Product.Id" hidden />
+                <div class="mb-3">
+                    <label asp-for="Product.Name" class="form-label fw-bold">Product Name</label>
+                    <input asp-for="Product.Name" class="form-control" placeholder="Enter product name" />
+                    <span asp-validation-for="Product.Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Description" class="form-label fw-bold">Description</label>
+                    <input asp-for="Product.Description" class="form-control" placeholder="Enter product description" />
+                    <span asp-validation-for="Product.Description" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Price" class="form-label fw-bold">Price</label>
+                    <input asp-for="Product.Price" type="number" class="form-control" placeholder="Enter price" min="0.01" step="0.01" />
+                    <span asp-validation-for="Product.Price" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.CategoryId" class="form-label fw-bold">Category ID</label>
+                    <input asp-for="Product.CategoryId" type="number" class="form-control" min="1" placeholder="Enter category ID" />
+                    <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.product_Quantity" class="form-label fw-bold">Quantity</label>
+                    <input asp-for="Product.product_Quantity" type="number" class="form-control" min="1" placeholder="Enter product quantity" />
+                    <span asp-validation-for="Product.product_Quantity" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload Images</label>
+                    <input asp-for="Product.ProductImages" type="file" name="files" class="form-control" multiple />
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-primary w-100">Update</button>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-dark w-100">Back To List</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Product Images -->
+            <div class="col-md-5 text-center">
+                <h4>Uploaded Images</h4>
+                @if (Model.Product.ProductImages != null)
+                {
+                    @foreach (var image in Model.Product.ProductImages)
+                    {
+                        <div class="border p-2 my-2">
+                            <img src="@image.ImageUrl" class="img-fluid" style="max-width: 80%; height: auto;" />
+                            <div class="mt-2">
+                                <a asp-action="DeleteImage" class="btn btn-danger btn-sm" asp-route-imageId="@image.Id">Delete</a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </form>
+</div>

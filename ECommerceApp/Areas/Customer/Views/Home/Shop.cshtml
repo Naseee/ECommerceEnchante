@@ -1,0 +1,158 @@
+﻿    @model ECommerceApp.Models.ViewModels.HomeVM
+    @using ECommerceApp.Services.IServices
+    @inject IOfferDiscountService OfferDiscountService
+
+<!-- Page Header Start -->
+<div class="container-fluid mb-5">
+    <div class="row border-top px-xl-5">
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Our Shop</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop</p>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+<!-- Link Stylesheet Once -->
+
+
+<!-- Search and Filter Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="col-lg-6 col-6">
+        <form asp-action="Shop" method="get" class="d-flex">
+          <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+            <input type="text" id="searchtext" name="searchtext" value="@ViewContext.HttpContext.Request.Query["searchtext"]"
+                   placeholder="Search" class="form-control me-2" />
+            <button type="submit" class="btn btn-dark"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <!-- Filter Button -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort by
+        </button>
+        <div class="dropdown-menu p-4" style="min-width: 300px;">
+            <form asp-action="Shop" method="get">
+               <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+                <!-- Category Filter -->
+                 <div class="mb-3">
+                            <label for="categoryId" class="form-label">Category:</label>
+                            <select name="categoryId" id="categoryId" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                   <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">@category.Name</option>
+                                }
+                            </select>
+                        </div>
+                <!-- Price Filter -->
+                <div class="mb-3">
+                    <label for="sortBy" class="form-label">Price</label>
+                    <select name="sortBy" id="sortBy" class="form-select">
+                        <option value="">Default</option>
+                        <option value="price_asc">Low To High</option>
+                        <option value="price_desc">High To Low</option>
+                    </select>
+                </div>
+
+                <!-- Name Filter -->
+                <div class="mb-3">
+                    <label for="sortByName" class="form-label">Name</label>
+                    <select name="sortByName" id="sortByName" class="form-select">
+                        <option value="">Default</option>
+                        <option value="name_asc">A to Z</option>
+                        <option value="name_desc">Z to A</option>
+                    </select>
+                </div>
+
+                <!-- Apply Filters Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Products Section -->
+
+<div class="product-section" style="display: flex; flex-wrap: wrap; gap: 20px;">
+    @foreach (var product in Model.Products)
+    {
+   
+    var result = OfferDiscountService.GetDiscountedPriceAndOffer(product);
+                var discountedPrice = result.DiscountedPrice;
+                var highestOffer = result.HighestOffer;
+                var discountPercentage = highestOffer?.DiscountPercentage;
+               
+                <div style="width: 250px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; text-align: center;">
+            @if (product.ProductImages != null && product.ProductImages.Count > 0)
+            {
+                <img src="@product.ProductImages.FirstOrDefault().ImageUrl" style="width: 100%; border-radius: 5px; margin-bottom: 10px;" alt="Product Image" />
+            }
+
+            <p style="font-weight: bold; font-size: 18px;">@product.Name</p>
+           
+            @if (highestOffer != null)
+            {
+                
+                <p style="font-size: 16px;">Price :
+                <span style="text-decoration: line-through; margin-right: 10px;"> @product.Price</span>
+                  <span style="color: green;">@discountedPrice (@discountPercentage% off)</span>
+                 </p>
+
+            }
+            else
+            {
+                <p style="font-size: 16px;">Price: @product.Price</p>
+            }
+            @if (product.product_Quantity >0)
+            {
+                <a asp-controller="Home" asp-action="Details" asp-route-Id="@product.Id" class="btn btn-dark">Details</a>
+            }
+            else
+            {
+                <button class="btn btn-danger" disabled>Out of Stock</button>
+            }
+        </div>
+    }
+</div>
+
+<!-- Pagination -->
+<div class="pagination-container mt-4 d-flex justify-content-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="?page=@i">@i</a>
+                </li>
+            }
+            <li class="page-item">
+                <a class="page-link" href="?page=@Model.TotalPages" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var dropdownToggle = document.getElementById("filterDropdown");
+        dropdownToggle.addEventListener("click", function () {
+            var dropdown = new bootstrap.Dropdown(dropdownToggle);
+            dropdown.toggle();
+        });
+    });
+</script>

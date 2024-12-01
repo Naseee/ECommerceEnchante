@@ -1,0 +1,41 @@
+﻿@model ECommerceApp.Models.Coupon
+
+<form method="post" class="container my-5 p-4 shadow-sm border rounded bg-light">
+    <div class="mb-4 text-center">
+        <h2 class="text-primary">Edit Coupon</h2>
+    </div>
+    <input asp-for="Id" hidden />
+
+    <div class="mb-3">
+        <label asp-for="Code" class="form-label fw-bold">Coupon Code</label>
+        <input asp-for="Code" class="form-control" placeholder="Enter coupon code" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DiscountPercentage" class="form-label fw-bold">Discount Percentage</label>
+        <input asp-for="DiscountPercentage" class="form-control" placeholder="Enter discount percentage" />
+        <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="StartDate" class="form-label fw-bold">Start Date</label>
+        <input asp-for="StartDate" class="form-control" placeholder="MM/DD/YYYY" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EndDate" class="form-label fw-bold">End Date</label>
+        <input asp-for="EndDate" class="form-control" placeholder="MM/DD/YYYY" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+
+    <div class="row g-2 mt-4">
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-primary w-100">Update</button>
+        </div>
+        <div class="col-md-6">
+            <a asp-controller="Coupon" asp-action="Index" class="btn btn-secondary w-100">Back To List</a>
+        </div>
+    </div>
+</form>

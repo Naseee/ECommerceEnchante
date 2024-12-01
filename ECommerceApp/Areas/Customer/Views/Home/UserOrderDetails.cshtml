@@ -1,0 +1,221 @@
+﻿@model ECommerceApp.ViewModels.Models.OrderVM
+
+@using ECommerceApp.Utility
+<link rel="stylesheet" href="~/css/paymentmethodstyle.css" asp-append-version="true" />
+
+    <br />
+    <div class="container my-5">
+        <div class="card shadow-lg border-0">
+            <!-- Header Section -->
+            <div class="card-header bg-primary bg-gradient text-white py-4">
+                <div class="row">
+                    <div class="col-6">
+                        <h5 class="pt-2">Order Summary</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a asp-action="UserOrderHistory" class="btn btn-outline-light btn-sm">Back to Orders</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Section -->
+            <div class="card-body p-5">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="row my-3">
+                                <h4 class="text-info">Order #@Model.OrderHeader.Id</h4>
+                            </div>
+                            <div class="row my-3">
+                                <div class="d-flex align-items-center">
+                                    <h6 class="text-info mb-0">Order Status:</h6>
+                                    <div class="alert alert-info ms-3 mb-0">
+                                        @Model.OrderHeader.OrderStatus
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row my-3">
+                                <h6 class="text-info">Order Date: @Model.OrderHeader.OrderDate.ToString("MM/dd/yyyy")</h6>
+
+                            </div>
+                            
+   
+</div>
+
+                        </div>
+
+                        <!-- Order Items Section -->
+                        <div class="col-12">
+                            
+                            <div class="row">
+                                <div class="d-flex align-items-center">
+                                    <h6 class="text-info mb-0">Payment Method:</h6>
+                                    <div class="alert mb-0 ms-3 @GetPaymentMethodClass(Model.OrderHeader.paymentMethod)">
+                                        @Model.OrderHeader.paymentMethod
+                                    </div>
+                                </div>
+
+                                @foreach (var item in Model.OrderDetail)
+                                {
+                                    <div class="row border-bottom pb-3 mb-3">
+                                        <div class="col-lg-2 text-center py-2">
+                                            @if (item.Product.ProductImages != null && item.Product.ProductImages.Count > 0)
+                                            {
+                                                var imageUrl = item.Product.ProductImages.FirstOrDefault()?.ImageUrl;
+                                                <img src="@imageUrl" style="width: 100%; border: 1px solid black; border-radius: 5px;" alt="Product Image" />
+                                            }
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <h5 class="text-uppercase text-secondary">
+                                                <strong>@item.Product.Name</strong>
+                                            </h5>
+                                            <p><small>@item.Product.Description</small></p>
+                                        </div>
+                                        <div class="col-lg-4 text-center">
+                                            <p><strong>Quantity:</strong> @item.Quantity</p>
+                                            <p><strong>Total:</strong> @((item.Price * item.Quantity).ToString("C"))</p>
+                                        </div>
+                                         <div class="col-lg-4 text-center">
+                                        @if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled
+                                       && Model.OrderHeader.OrderStatus != StaticDetails.StatusShipped&&
+                                       Model.OrderHeader.OrderStatus!=StaticDetails.StatusDelivered
+                                       && Model.OrderHeader.OrderStatus != StaticDetails.StatusRefunded)
+                                        {
+                                            <form asp-action="CancelOrder" method="post">
+                                                <input type="hidden" name="OrderVM.OrderHeader.Id" value="@Model.OrderHeader.Id" />
+                                                <input type="hidden" name="OrderVM.ProductId" value="@item.ProductId" />
+                                                <input type="hidden" name="OrderVM.Quantity" value="@item.Quantity" />
+                                                <button type="submit" class="btn btn-danger form-control my-1">Cancel</button>
+                                            </form>
+                                        }
+                                        @if(Model.OrderHeader.OrderStatus==StaticDetails.StatusDelivered&&
+                                         Model.OrderHeader.DeliveryDate < DateTime.Today.AddDays(7))
+                                        {
+                                            
+                                            <form asp-action="ReturnOrder" method="post">
+                                                <input type="hidden" name="OrderVM.OrderHeader.Id" value="@Model.OrderHeader.Id" />
+                                                <input type="hidden" name="OrderVM.ProductId" value="@item.ProductId" />
+                                                <input type="hidden" name="OrderVM.Quantity" value="@item.Quantity" />
+                                                <button type="submit" class="btn btn-danger form-control my-1">Return</button>
+                                            </form>
+                                        }
+                                    </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Shipping Details Section -->
+                        <div class="col-12 col-lg-6 mt-5">
+
+                            <div class="mt-4">
+                                <h5 class="text-info">Shipping Address</h5>
+                                @if (Model.Addresses != null && Model.Addresses.Any())
+                                {
+                                    var shippingAddress = Model.Addresses.FirstOrDefault(a => a.AddressId == Model.OrderHeader.AddressId);
+                                    @if (shippingAddress != null)
+                                    {
+                                        <div class="card shadow-sm">
+                                            <div class="card-body">
+                                               
+                                                <p class="mt-3">
+                                                    <strong>@Model.OrderHeader.Name</strong><br />
+                                                    <strong>Street:</strong> @Html.DisplayFor(modelItem => shippingAddress.Street) <br />
+                                                    <strong>City:</strong> @Html.DisplayFor(modelItem => shippingAddress.City) <br />
+                                                    <strong>State:</strong> @Html.DisplayFor(modelItem => shippingAddress.State) <br />
+                                                    <strong>Postal Code:</strong> @Html.DisplayFor(modelItem => shippingAddress.PostalCode)
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        No shipping address available.
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+
+                        <!-- Order Summary Section -->
+                        <div class="col-12 col-lg-5 offset-lg-1 mt-5">
+                            <h4 class="text-info">Order Summary</h4>
+                            <ul class="list-group my-3">
+                                @if (@Model.OrderHeader.OrderTotal > @Model.OrderHeader.DiscountedTotal)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">SubTotal (USD):</span>
+                                    <strong class="text-info">$ @(Model.OrderHeader.DiscountedTotal - Model.OrderHeader.ShippingCharge)</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Discounts Applied (USD):</span>
+                                        <strong class="text-info">@(Model.OrderHeader.OrderTotal-Model.OrderHeader.DiscountedTotal)</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Coupon Deduction (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.CouponDiscount.ToString()</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Shipping Charge (USD):</span>
+                                           <strong class="text-info">@Model.OrderHeader.ShippingCharge</strong>
+                                         
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Total (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.DiscountedTotal.ToString("C")</strong>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">SubTotal (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Shipping Charge (USD):</span>
+                                        @if (@Model.OrderHeader.OrderTotal > 100)
+                                        {
+                                            <strong class="text-info">$10.ToString("C")</strong>
+                                        }
+                                        else
+                                        {
+                                            <strong class="text-info">free</strong>
+                                        }
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between bg-light">
+                                        <span class="text-info">Total (USD):</span>
+                                        <strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+                                    </li>
+                                }
+                                
+                               
+                                
+                            </ul>
+                            
+
+                            <!-- Action Buttons -->
+                           
+                             
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@functions {
+    public string GetPaymentMethodClass(string paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            "Visa" => "alert-primary",    // Style for Visa
+            "COD" => "alert-warning",    // Style for Cash on Delivery
+            "Wallet" => "alert-success", // Style for Wallet
+            "PayPal" => "alert-info",    // Style for PayPal
+            _ => "alert-secondary"       // Default style
+        };
+    }
+}

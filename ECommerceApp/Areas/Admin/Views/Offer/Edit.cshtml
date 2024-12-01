@@ -1,0 +1,58 @@
+﻿@model ECommerceApp.Models.ViewModels.OfferVM
+
+
+<form method="post">
+    <div>
+        <h2>Edit Offer</h2>
+    </div>
+
+    <div>
+        <label asp-for="offer.OfferName"></label>
+        <input asp-for="offer.OfferName" class="form-control" />
+        <span asp-validation-for="offer.OfferName"></span>
+    </div>
+    <div class="form-group">
+        <label for="CategoryIds">Select Categories</label>
+        <select id="CategoryIds" name="CategoryIds" class="form-control" multiple>
+            <option value="">Select categories</option>
+            @foreach (var category in Model.Categories)
+            {
+                <option value="@category.Id">@category.Name</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="ProductIds">Select Products</label>
+        <select id="ProductIds" name="ProductIds" class="form-control" multiple>
+            <option value="">Select products</option>
+            @foreach (var product in Model.Products)
+            {
+                <option value="@product.Id">@product.Name</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label asp-for="offer.DiscountPercentage"></label>
+        <input asp-for="offer.DiscountPercentage" class="form-control" />
+        <span asp-validation-for="offer.DiscountPercentage"></span>
+    </div>
+    <div>
+        <label asp-for="offer.StartDate"></label>
+        <input asp-for="offer.StartDate" class="form-control" />
+        <span asp-validation-for="offer.StartDate"></span>
+    </div>
+    <div>
+        <label asp-for="offer.EndDate"></label>
+        <input asp-for="offer.EndDate" class="form-control" />
+        <span asp-validation-for="offer.EndDate"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <button type="submit" class="btn btn-primary form-control">Update</button>
+        </div>
+        <div class="col-6">
+            <a asp-controller="Offer" asp-action="Index" class="btn btn-dark">Back To List</a>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,58 @@
+﻿@page
+@model ECommerceApp.Areas.Identity.Pages.Account.VerifyOtpModel
+@{
+    ViewData["Title"] = "Verify OTP";
+}
+
+<h1>Verify OTP</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <form method="post" class="shadow p-4 rounded bg-light">
+            <div class="form-group">
+                <input asp-for="Input.Email" type="hidden" />
+
+                <label asp-for="Input.Otp" class="control-label"></label>
+                <input asp-for="Input.Otp" class="form-control" />
+                <span asp-validation-for="Input.Otp" class="text-danger"></span>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" name="action" value="verify" class="btn btn-primary btn-lg">Verify</button>
+
+                <button type="submit" name="action" value="resend" id="resendButton" class="btn btn-secondary btn-lg" disabled>Resend OTP</button>
+                <p class="text-center mt-2" id="countdownText"></p>
+
+            </div>
+           
+           
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Countdown timer for enabling the resend button
+        let countdown = 60; // 60 seconds
+        const countdownText = document.getElementById("countdownText");
+        const resendButton = document.getElementById("resendButton");
+
+        function startCountdown() {
+            const timer = setInterval(() => {
+                if (countdown > 0) {
+                    countdown--;
+                    countdownText.innerText = `You can resend OTP in ${countdown} seconds.`;
+                } else {
+                    clearInterval(timer);
+                    countdownText.innerText = "";
+                    resendButton.disabled = false;
+                }
+            }, 1000);
+        }
+
+        // Start countdown on page load
+        window.onload = startCountdown;
+    </script>
+}

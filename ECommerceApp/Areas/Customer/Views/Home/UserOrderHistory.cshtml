@@ -1,0 +1,82 @@
+﻿@{
+    var timePeriod = Context.Request.Query["timePeriod"];
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Order History</h2>
+        </div>
+    </div>
+
+    <!-- Filter by Order Status -->
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-end align-items-center gap-2">
+            <label for="timePeriodFilter" class="form-label mb-0 fw-bold">Filter by:</label>
+            <select id="timePeriodFilter" class="form-select w-auto" onchange="applyTimePeriodFilter(this)">
+                <option value="all" selected="@((timePeriod == "all") ? "selected" : null)">All</option>
+                <option value="lastweek" selected="@((timePeriod == "lastweek") ? "selected" : null)">Last Week</option>
+                <option value="lastmonth" selected="@((timePeriod == "lastmonth") ? "selected" : null)">Last Month</option>
+                <option value="lastyear" selected="@((timePeriod == "lastyear") ? "selected" : null)">Last Year</option>
+            </select>
+        </div>
+    </div>
+
+
+    <!-- Order Cards -->
+    <div class="row" id="orderList">
+        @foreach (var order in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Order # <span class="text-primary">@order.Id</span></h5>
+                        <p><strong>Date:</strong> @order.OrderDate</p>
+                       
+                        <p>
+                            <strong>Status:</strong>
+                            <span class="badge badge-@(GetStatusBadge(order.OrderStatus))">@order.OrderStatus</span>
+                        </p>
+                        @if(order.DiscountedTotal!=null)
+                        {
+                            <p><strong>Total:</strong> @order.DiscountedTotal.ToString("C")</p>
+                        }
+                        else{
+                        <p><strong>Total:</strong> @order.OrderTotal.ToString("C")</p>
+                        }
+                        <a class="btn btn-dark" asp-action="UserOrderDetails" asp-route-id="@order.Id">View Details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function applyTimePeriodFilter(selectElement) {
+        const selectedPeriod = selectElement.value;
+        const currentUrl = new URL(window.location.href);
+
+        // Update query parameters
+        currentUrl.searchParams.set('timePeriod', selectedPeriod);
+
+        // Redirect to the updated URL
+        window.location.href = currentUrl.toString();
+    }
+</script>
+@functions {
+    private string GetStatusBadge(string status)
+    {
+        switch (status)
+        {
+            case "Pending": return "warning";
+            case "Approved": return "success";
+            case "In Process": return "info";
+            case "Shipped": return "primary";
+            case "Cancelled": return "danger";
+            case "Refunded": return "secondary";
+            default: return "light";
+        }
+    }
+}
+

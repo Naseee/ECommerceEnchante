@@ -1,0 +1,164 @@
+﻿
+@{
+    var status = Context.Request.Query["status"];
+    var pending = "text-primary";
+    var approved = "text-primary";
+    var inprocess = "text-primary";
+    var shipped = "text-primary";
+    var delivered="text-primary";
+    var cancelled = "text-primary";
+    var refunded = "text-primary";
+    var returned="text-primary";
+    var all = "text-primary";
+    switch(status)
+    {
+        case "pending":
+            pending = "active text-white bg-primary";
+            break;
+        case "approved":
+            approved = "active text-white bg-primary";
+            break;
+        case "inprocess":
+            inprocess = "active text-white bg-primary";
+            break;
+        case "shipped":
+            shipped = "active text-white bg-primary";
+            break;
+        case "delivered":
+            delivered = "active text-white bg-primary";
+            break;
+        case "cancelled":
+            cancelled = "active text-white bg-primary";
+            break;
+        case "returned":
+            returned = "active text-white bg-primary";
+            break;
+        case "refunded":
+            refunded = "active text-white bg-primary";
+            break;
+        default:
+            all = "active text-white bg-primary";
+            break;
+    }
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Order List</h2>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between pb-5 pt-2">
+            <span></span>
+            <ul class="list-group list-group-horizontal-sm">
+                
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="pending">
+                <li class="list-group-item @pending">Pending</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="approved">
+                <li class="list-group-item @approved">Approved</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="inprocess">
+                    <li class="list-group-item  @inprocess">In Process</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="shipped">
+                <li class="list-group-item @shipped">Shipped</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="delivered">
+                <li class="list-group-item @delivered">Delivered</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="cancelled">
+                    <li class="list-group-item  @cancelled">Cancelled</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="returned">
+                <li class="list-group-item @returned">Returned</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="refunded">
+                    <li class="list-group-item  @refunded">Refunded</li>
+                </a>
+                <a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="all">
+                <li class="list-group-item @all">All</li>
+                </a>
+            </ul>
+
+        </div>
+
+    </div>
+    <table id="orderTable" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>OrderID</th>
+                <th>OrderDate</th>
+                <th>Order Status</th>
+                <th>Payment Status</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
+    <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var url = window.location.search;
+            if (url.includes("pending")) {
+                bindDatatable("pending");
+            }
+            else if (url.includes("approved")) {
+                bindDatatable("approved");
+            }
+            else if (url.includes("inprocess")) {
+                bindDatatable("inprocess");
+            }
+            else if (url.includes("shipped")) {
+                bindDatatable("shipped");
+            }
+            else if (url.includes("delivered")) {
+                bindDatatable("delivered");
+            }
+             else if (url.includes("cancelled")) {
+                bindDatatable("cancelled");
+             }
+             else if (url.includes("returned")) {
+                bindDatatable("returned");
+            }
+             else if (url.includes("refunded")) {
+                bindDatatable("refunded");
+             }
+            else  {
+                bindDatatable("all");
+            }
+            
+        });
+
+        function bindDatatable(status) {
+            $('#orderTable').DataTable({
+                "ajax": {
+                    "url": "/admin/order/getorderlist?status=" + status,
+                    "type": "GET",
+                    "datatype": "json"
+                },
+                "columns": [
+                    { "data": "id", "autoWidth": true, "searchable": true },
+                   
+                    { "data": "orderDate", "autoWidth": true, "searchable": true },
+                    { "data": "orderStatus", "autoWidth": true, "searchable": true },
+                    { "data": "paymentStatus", "autoWidth": true, "searchable": true },
+                    { "data": "orderTotal", "autoWidth": true, "searchable": true },
+                    {
+                        "data": "id",
+                        "render": function (data) {
+                            return '<a href="/admin/order/orderdetails?id=' + data + '" class="btn btn-dark">Details</a>' ;
+                        }
+                    }
+
+                ],
+                 "order": [[0, "desc"]],
+            });
+        }
+    </script>
+}

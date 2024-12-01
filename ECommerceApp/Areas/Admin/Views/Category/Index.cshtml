@@ -1,0 +1,41 @@
+﻿@model IEnumerable<ECommerceApp.Models.Category>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Category List</h2>
+        </div>
+        <div class="col-md-6">
+            <a asp-controller="Category" asp-action="Create" class="btn btn-primary">Add Category</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <table class="table table-bordered table-striped bg-gradient">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+               
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model)
+            {
+                <tr>
+                    <td>@category.Name</td>
+                    <td>@category.Description</td>
+                    
+                    <td>
+                        <a asp-controller="Category" asp-action="Edit" asp-route-Id="@category.Id" class="btn btn-primary">Edit</a>
+                    </td>
+                    <td>
+                        <a asp-controller="Category" asp-action="Delete" asp-route-Id="@category.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

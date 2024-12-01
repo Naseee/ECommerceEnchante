@@ -1,0 +1,110 @@
+﻿@model ECommerceApp.Models.ViewModels.OfferVM
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Add Offer</h2>
+
+    <form method="post" id="offerForm">
+        <div class="card">
+            <div class="card-body">
+
+                <!-- Offer Name -->
+                <div class="form-group">
+                    <label for="OfferName">Offer Name</label>
+                    <input asp-for="offer.OfferName" class="form-control" placeholder="Enter offer name" />
+                    <span asp-validation-for="offer.OfferName" class="text-danger"></span>
+                </div>
+
+                <!-- Select Categories with Checkboxes -->
+                <div class="form-group">
+                    <label>Select Categories</label>
+                    <div>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" name="CategoryIds" value="@category.Id" class="form-check-input" id="category-@category.Id" />
+                                <label class="form-check-label" for="category-@category.Id">@category.Name</label>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="CategoryIds" class="text-danger" id="categoryError"></span>
+                </div>
+
+                <!-- Select Products with Checkboxes -->
+                <div class="form-group">
+                    <label>Select Products</label>
+                    <div>
+                        @foreach (var product in Model.Products)
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" name="ProductIds" value="@product.Id" class="form-check-input" id="product-@product.Id" />
+                                <label class="form-check-label" for="product-@product.Id">@product.Name</label>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="ProductIds" class="text-danger" id="productError"></span>
+                </div>
+
+                <!-- Discount Percentage -->
+                <div class="form-group">
+                    <label for="DiscountPercentage">Discount Percentage</label>
+                    <input asp-for="offer.DiscountPercentage" class="form-control" placeholder="Enter discount percentage" />
+                    <span asp-validation-for="offer.DiscountPercentage" class="text-danger"></span>
+                </div>
+
+                <!-- Start Date -->
+                <div class="form-group">
+                    <label for="StartDate">Start Date</label>
+                    <input asp-for="offer.StartDate" type="date" class="form-control" />
+                    <span asp-validation-for="offer.StartDate" class="text-danger"></span>
+                </div>
+
+                <!-- End Date -->
+                <div class="form-group">
+                    <label for="EndDate">End Date</label>
+                    <input asp-for="offer.EndDate" type="date" class="form-control" />
+                    <span asp-validation-for="offer.EndDate" class="text-danger"></span>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="row">
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-primary btn-block" onclick="return validateForm()">Add Offer</button>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Offer" asp-action="Index" class="btn btn-secondary btn-block">Back To List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript Validation Script -->
+<script>
+    function validateForm() {
+        var isValid = true;
+        var categoryError = document.getElementById("categoryError");
+        var productError = document.getElementById("productError");
+
+        // Reset error messages
+        categoryError.textContent = "";
+        productError.textContent = "";
+
+        // Check if at least one category or product checkbox is selected
+        var categories = document.getElementsByName("CategoryIds");
+        var isCategorySelected = Array.from(categories).some(checkbox => checkbox.checked);
+
+        var products = document.getElementsByName("ProductIds");
+        var isProductSelected = Array.from(products).some(checkbox => checkbox.checked);
+
+        // Display warning if neither category nor product is selected
+        if (!isCategorySelected && !isProductSelected) {
+            categoryError.textContent = "Please select at least one category or one product.";
+            productError.textContent = "Please select at least one category or one product.";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+</script>
+

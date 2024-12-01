@@ -1,0 +1,139 @@
+﻿@model IEnumerable<ECommerceApp.Models.ViewModels.SalesReportVM>
+
+<h2 class="mb-4 text-primary text-center">Sales Report</h2>
+
+<div class="card mb-4 p-3 shadow">
+    <form method="get" class="form-inline">
+        <div class="form-group">
+            <label for="startDate" class="mr-2">Start Date:</label>
+            <input type="date" id="startDate" name="startDate" class="form-control mr-4"  />
+        </div>
+        <div class="form-group">
+            <label for="endDate" class="mr-2">End Date:</label>
+            <input type="date" id="endDate" name="endDate" class="form-control mr-4"  />
+        </div>
+        <div class="card mb-4 p-3">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-chart-line"></i> Generate Report
+        </button>
+        </div>
+    </form>
+    <div class="card mb-4 p-3">
+     <form method="get" action="@Url.Action("GeneratePdf", "Salesreport", new { Area = "Admin" })" class="form-inline">
+        <input type="hidden" name="startDate" value="@Context.Request.Query["startDate"]" />
+        <input type="hidden" name="endDate" value="@Context.Request.Query["endDate"]" />
+        <button type="submit" class="btn btn-danger">
+            <i class="fa fa-file-pdf"></i> Download PDF
+        </button>
+    </form>
+    </div>
+        <div class="card mb-4 p-3">
+        <form method="get" action="@Url.Action("GenerateExcel", "Salesreport", new { Area = "Admin" })" class="form-inline">
+            <input type="hidden" name="startDate" value="@Context.Request.Query["startDate"]" />
+            <input type="hidden" name="endDate" value="@Context.Request.Query["endDate"]" />
+            <button type="submit" class="btn btn-danger">
+                <i class="fa fa-file-pdf"></i> Download Excel
+            </button>
+        </form>
+        <div class="mt-3">
+            <label class="mr-2 font-weight-bold">Quick Filters:</label>
+            <a class="btn btn-outline-secondary mr-2" href="@Url.Action("SalesReport", "Salesreport", new { Area = "Admin", startDate = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd"), endDate = DateTime.UtcNow.ToString("yyyy-MM-dd") })">
+                Last 1 Day
+            </a>
+            <a class="btn btn-outline-secondary mr-2" href="@Url.Action("SalesReport", "Salesreport", new { Area = "Admin", startDate = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-dd"), endDate = DateTime.UtcNow.ToString("yyyy-MM-dd") })">
+                Last 1 Week
+            </a>
+            <a class="btn btn-outline-secondary" href="@Url.Action("salesReport", "Salesreport", new { Area = "Admin", startDate = DateTime.UtcNow.AddMonths(-1).ToString("yyyy-MM-dd"), endDate = DateTime.UtcNow.ToString("yyyy-MM-dd") })">
+                Last 1 Month
+            </a>
+        </div>
+    </div>
+</div>
+<div class="card mb-4 p-3">
+    <h5>Total Orders: @ViewBag.TotalSales</h5>
+    <h5>Total Sales Amount: @ViewBag.TotalSalesAmount.ToString("C")</h5>
+    <h5>Total Discount :@ViewBag.TotalDiscount.ToString()</h5>  
+
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover shadow">
+        <thead class="thead-dark">
+            <tr>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.OrderDate.ToString()</td>
+                    <td>@order.CustomerName</td>
+                    <td>@order.TotalAmount.ToString("C")</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#orderDetails-@order.OrderId" aria-expanded="false" aria-controls="orderDetails-@order.OrderId">
+                            <i class="fa fa-eye"></i> View Details
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="p-0">
+                        <div id="orderDetails-@order.OrderId" class="collapse">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Discount</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <tr>
+                                            <td>@item.ProductName</td>
+                                            <td>@item.Quantity</td>
+                                            <td>@item.UnitPrice.ToString("C")</td>
+                                            <td>@item.Discount.ToString("C")</td>
+                                            <td>@item.TotalPrice.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <nav>
+        <ul class="pagination">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="SalesReport" asp-route-pageNumber="@(ViewBag.CurrentPage - 1)" asp-route-pageSize="@ViewBag.PageSize">Previous</a>
+                </li>
+            }
+
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-action="SalesReport" asp-route-pageNumber="@i" asp-route-pageSize="@ViewBag.PageSize">@i</a>
+                </li>
+            }
+
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="SalesReport" asp-route-pageNumber="@(ViewBag.CurrentPage + 1)" asp-route-pageSize="@ViewBag.PageSize">Next</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

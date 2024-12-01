@@ -1,0 +1,172 @@
+﻿@model ECommerceApp.Models.ViewModels.CartVM
+@using ECommerceApp.Settings
+@using Microsoft.Extensions.Options
+@inject IOptions<StripeSettings> Stripe
+
+@if (!string.IsNullOrEmpty(ViewBag.message))
+{
+    <div class="alert alert-danger">
+        @ViewBag.message
+    </div>
+}
+
+<form method="post">
+    <br />
+    <div class="container">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-gradient bg-secondary text-light py-4">
+                <div class="row px-4">
+                    <div class="col-6">
+                        <h5 class="pt-2">Order Summary</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <a asp-action="Index" class="btn btn-outline-danger btn-sm">Back to Cart</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="container rounded p-4">
+                    <div class="row">
+                        <div class="col-12 col-lg-6 pb-4">
+                            <div class="row">
+                                <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-info">Shipping Details:</span>
+                                </h4>
+                            </div>
+                            <div class="row my-3">
+                                <div class="col-3">
+                                    <label for="orderHeader_Name" class="form-label">Name</label>
+                                </div>
+                                <div class="col-9">
+                                    <input asp-for="orderHeader.Name" class="form-control" id="orderHeader_Name" placeholder="orderHeader.Name"readonly />
+                                    <span asp-validation-for="orderHeader.Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row my-3">
+                                <h3>Shipping Address</h3>
+                                @if (Model.Address != null && Model.Address.Any())
+                                {
+                                    <ul class="list-unstyled">
+                                        @foreach (var address in Model.Address)
+                                        {
+                                            <li>
+                                                <input asp-for="SelectedAddressId" type="radio" value="@address.AddressId" class="form-check-input" />
+                                                <label>
+                                                    <p>
+                                                    
+                                                    @Html.DisplayFor(modelItem => address.Street),<br/>
+                                                        @Html.DisplayFor(modelItem => address.City),<br />
+                                                        @Html.DisplayFor(modelItem => address.State),<br />
+                                                        @Html.DisplayFor(modelItem => address.PostalCode)<br />
+                                                        </p>
+                                                </label>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                <a asp-controller="Address" asp-action="Create" class="text-info">Add New Address</a>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-5 offset-lg-1">
+                            <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-info">Order Summary:</span>
+                            </h4>
+                            <ul class="list-group mb-3">
+                                @foreach (var details in @Model.cartList)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="my-0">@details.Product.Name</h6>
+                                            <small class="text-muted">Quantity: @details.Quantity</small>
+                                        </div>
+                                        <span class="text-muted">@((@details.Product.Price * @details.Quantity).ToString("C"))</span>
+                                    </li>
+                                }
+                                <li class="list-group-item d-flex justify-content-between bg-light">
+                                    <small class="text-info">Total (USD): </small>
+                                    <strong class="text-info" id="OrderTotalDisplay">
+                                        @(Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal ?
+                                            Model.orderHeader.DiscountedTotal.ToString("C") :
+                                            Model.orderHeader.OrderTotal.ToString("C"))
+                                    </strong>
+                                </li>
+                            </ul>
+
+                            <!-- Available Coupons Section -->
+                            <h5>Available Coupons</h5>
+                            <ul class="list-group mb-3">
+                                @if (Model.Coupon != null)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <div>
+                                            <input type="checkbox" name="SelectedCoupons" value="@Model.Coupon.Code"
+                                                   class="form-check-input me-2" checked onchange="updateCouponCodeDisplay()" />
+                                            <label>@Model.Coupon.Code - @Model.Coupon.DiscountPercentage% off</label>
+                                        </div>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item">No available coupons.</li>
+                                }
+                            </ul>
+
+                            <!-- Display Selected Coupons -->
+                            <div class="mb-3">
+                                <label>Selected Coupon</label>
+                                <p id="CouponCodeDisplay" class="form-control-plaintext">
+                                    @(Model.Coupon != null ? Model.Coupon.Code : "None")
+                                </p>
+                                <!-- Hidden input to pass the selected coupon code in form submission -->
+                                <input type="hidden" id="CouponCode" name="CouponCode" value="@(Model.Coupon != null ? Model.Coupon.Code : "")" />
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="row">
+                    <div class="col-12 col-md-8 pt-2">
+                        <p style="color: maroon; font-size: 14px;">
+                            Estimate Arrival Date: @DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-4 text-center">
+                        <button type="submit" name="paymentOption" value="cod" class="btn btn-success btn-lg my-2 rounded-pill">Cash on Delivery</button>
+                        <button type="submit" name="paymentOption" value="paypal" class="btn btn-warning btn-lg my-2 rounded-pill" style="font-weight: bold; border-color: #ffc439;">PayPal</button>
+                        <button type="submit" name="paymentOption" value="visa" class="btn btn-dark btn-lg my-2 rounded-pill">Visa Card</button>
+                        <button type="submit" name="paymentOption" value="wallet" class="btn btn-primary btn-lg my-2 rounded-pill">Wallet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    function updateCouponCodeDisplay() {
+        const selectedCoupon = document.querySelector('input[name="SelectedCoupons"]:checked');
+        document.getElementById('CouponCodeDisplay').textContent = selectedCoupon ? selectedCoupon.value : "None";
+
+        // Update the total with the additional coupon discount
+        applyAdditionalCouponDiscount(selectedCoupon);
+    }
+
+    function applyAdditionalCouponDiscount(selectedCoupon) {
+       const baseDiscountedTotal = parseFloat('@(Model.orderHeader?.DiscountedTotal ?? 0)');
+const couponDiscountPercentage = selectedCoupon ? parseFloat('@(Model.Coupon?.DiscountPercentage ?? 0)') : 0;
+
+        // Calculate additional discount based on coupon
+        const additionalDiscount = baseDiscountedTotal * (couponDiscountPercentage / 100);
+        const finalDiscountedTotal = baseDiscountedTotal - additionalDiscount;
+
+        // Update the display with the final total
+        document.getElementById('OrderTotalDisplay').textContent = finalDiscountedTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+
+    // Initialize coupon display and total update on page load
+    document.addEventListener("DOMContentLoaded", function () {
+        updateCouponCodeDisplay();
+    });
+</script>

@@ -1,0 +1,109 @@
+﻿@model IEnumerable<ECommerceApp.Models.Offer>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h2 class="text-primary">Offers List</h2>
+        </div>
+        <div class="col-md-6 text-right">
+            <a asp-controller="Offer" asp-action="Create" class="btn btn-primary">Add New Offer</a>
+        </div>
+    </div>
+
+    <table class="table table-hover table-bordered bg-light">
+        <thead class="thead-dark">
+            <tr>
+                <th>Offer Name</th>
+                <th>Discount (%)</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Is Active</th>
+                <th>Offer Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var offer in Model)
+            {
+                <tr>
+                    <td>@offer.OfferName</td>
+                    <td>@offer.DiscountPercentage%</td>
+                    <td>@offer.StartDate.ToString("MMM dd, yyyy")</td>
+                    <td>@offer.EndDate.ToString("MMM dd, yyyy")</td>
+                    <td>@offer.IsActive </td>
+                    <td>@offer.OfferType</td>
+                    <td>
+                        <a asp-controller="Offer" asp-action="Edit" asp-route-Id="@offer.OfferId" class="btn btn-sm btn-info mr-1">Edit</a>
+                        <a asp-controller="Offer" asp-action="Delete" asp-route-Id="@offer.OfferId" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+
+                <!-- Category and Product Details Row -->
+                <tr>
+                    <td colspan="7">
+                        <button class="btn btn-link text-left" data-toggle="collapse" data-target="#details-@offer.OfferId">
+                            View Details
+                        </button>
+
+                        <div id="details-@offer.OfferId" class="collapse mt-2">
+                            <!-- Category Offers -->
+                            @if (offer.CategoryOffers != null && offer.CategoryOffers.Any())
+                            {
+                                <div class="mb-2">
+                                    <strong>Category Offers:</strong>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Category Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var categoryOffer in offer.CategoryOffers)
+                                            {
+                                                <tr>
+                                                    <td>@categoryOffer.Category.Name</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+
+                            <!-- Product Offers -->
+                            @if (offer.ProductOffers != null && offer.ProductOffers.Any())
+                            {
+                                <div class="mb-2">
+                                    <strong>Product Offers:</strong>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Product Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var productOffer in offer.ProductOffers)
+                                            {
+                                                <tr>
+                                                    <td>@productOffer.Product.Name</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="collapse"]').on('click', function () {
+            var target = $(this).data('target');
+            $(target).collapse('toggle');
+        });
+    });
+</script>

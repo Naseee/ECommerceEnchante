@@ -1,0 +1,277 @@
+﻿@model IEnumerable<ECommerceApp.Models.ViewModels.SalesReportVM>
+<div id="wrapper">
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+            <form method="get" action="@Url.Action("GeneratePdf", "Salesreport", new { Area = "Admin" })" class="form-inline">
+                <input type="hidden" name="startDate" value="@Context.Request.Query["startDate"]" />
+                <input type="hidden" name="endDate" value="@Context.Request.Query["endDate"]" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-file-pdf"></i> Download PDF
+                </button>
+            </form>
+
+        </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+   
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Earnings 
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">$@ViewBag.TotalSalesAmount</div>
+                        </div>
+                        <div class="col-auto">
+                                <i class="fas fa-coins fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                               Sales 
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalSales</div>
+                        </div>
+                        <div class="col-auto">
+                                <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Best Selling Product
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@ViewBag.BestSellingProduct.ToString()</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar"
+                                             style="width: 50%" aria-valuenow="50" aria-valuemin="0"
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                                <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Best Selling Category
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.BestSellingCategory</div>
+                        </div>
+                        <div class="col-auto">
+                                <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+
+    <div class="row">
+
+        <!-- Area Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+                    <div class="dropdown mb-3">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="timePeriodDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select Time Period
+    </button>
+    <div class="dropdown-menu" aria-labelledby="timePeriodDropdown">
+
+                                <a class="dropdown-item" href="#" onclick="updateChart('total')">Total Sales</a>
+                                <a class="dropdown-item" href="#" onclick="updateChart('weekly')">Weekly Sales</a>
+                                <a class="dropdown-item" href="#" onclick="updateChart('monthly')">Monthly Sales</a>
+                                <a class="dropdown-item" href="#" onclick="updateChart('annual')">Annual Sales</a>
+    </div>
+</div>
+
+                    </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            // Retrieve data from ViewBag
+                            const totalSalesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.TotalSalesData));
+                            const weeklySalesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.WeeklySalesData));
+                            const monthlySalesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.MonthlySalesData));
+                            const annualSalesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.AnnualSalesData));
+
+                            // Chart initialization
+                            const ctx = document.getElementById('salesChart').getContext('2d');
+                            const salesChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: totalSalesData.map(item => item.Date), // Default: Total Sales (dates)
+                                    datasets: [{
+                                        label: 'Total Sales',
+                                        data: totalSalesData.map(item => item.TotalSales),
+                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
+
+                            // Update chart function
+                            function updateChart(period) {
+                                let selectedData, labelsKey;
+
+                                // Select data and labels based on period
+                                switch (period) {
+                                    case 'total':
+                                        selectedData = totalSalesData;
+                                        labelsKey = 'Date'; // Use dates for Total Sales
+                                        break;
+                                    case 'weekly':
+                                        selectedData = weeklySalesData;
+                                        labelsKey = 'Date'; // Use dates for Weekly Sales
+                                        break;
+                                    case 'monthly':
+                                        selectedData = monthlySalesData;
+                                        labelsKey = 'Week'; // Use weeks for Monthly Sales
+                                        break;
+                                    case 'annual':
+                                        selectedData = annualSalesData;
+                                        labelsKey = 'Month'; // Use months for Annual Sales
+                                        break;
+                                    default:
+                                        selectedData = totalSalesData;
+                                        labelsKey = 'Date'; // Fallback to dates
+                                }
+
+                                // Update chart data and labels dynamically
+                                salesChart.data.labels = selectedData.map(item => item[labelsKey]);
+                                salesChart.data.datasets[0].data = selectedData.map(item => item.TotalSales);
+                                salesChart.data.datasets[0].label = `${period.charAt(0).toUpperCase() + period.slice(1)} Sales`;
+                                salesChart.update();
+                            }
+                        </script>
+
+
+
+
+                    </div>
+
+
+
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Order Status</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                             aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Dropdown Header:</div>
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                        
+
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="myPieChart"></canvas>
+                        </div>
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                var ctx = document.getElementById("myPieChart").getContext("2d");
+                                var myPieChart = new Chart(ctx, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: ["Cancelled", "Approved", "Refunded", "Shipped", "Pending"],
+                                        datasets: [{
+                                            data: [3, 21, 2, 1, 1],
+                                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                                        }],
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        plugins: {
+                                            legend: { position: 'top' },
+                                        },
+                                    },
+                                });
+                            });
+                        </script>
+
+
+
+
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    
+
+</div></div>

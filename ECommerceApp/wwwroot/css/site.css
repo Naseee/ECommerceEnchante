@@ -1,0 +1,68 @@
+a.navbar-brand
+html {
+  font-size: 16px;
+}
+
+@media (min-width: 767px) {
+  html {
+
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Adjust color and opacity */
+    outline: none; /* Remove default browser outline */
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+
+}
+
+body {
+
+  margin-bottom: 60px;
+}
+.icon-lg {
+    font-size: 1.5rem; /* Increase size to 1.5 times the default size */
+    vertical-align: middle; /* Aligns the icon vertically in the middle */
+}
+.navbar-brand {
+    font-size: 24px; /* Adjust font size as needed */
+    font-weight: bold;
+    color: #333; /* Customize text color */
+}
+
+.navbar-toggler {
+    border-color: #ccc; /* Customize border color */
+}
+
+.navbar-toggler-icon {
+    background-color: #333; /* Customize icon color */
+}
+
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* The main section takes the remaining space */
+main {
+    flex-grow: 1;
+    padding-bottom: 20px;
+}
+
+/* Footer stays at the bottom of the page */
+footer.footer {
+    margin-top: auto;
+    background-color: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    position:relative;
+}

@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .summary {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+            .summary h5 {
+                margin: 5px 0;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .nested-table {
+            margin: 0;
+            font-size: 12px;
+        }
+
+            .nested-table th {
+                background-color: #f2f2f2;
+            }
+
+        .collapse-container {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>Sales Report</h2>
+    <div class="summary">
+        <h5>Total Orders: <strong>@ViewBag.TotalSales</strong></h5>
+        <h5>Total Sales Amount: <strong>@ViewBag.TotalSalesAmount.ToString("C")</strong></h5>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.OrderDate.ToString("yyyy-MM-dd")</td>
+                    <td>@order.CustomerName</td>
+                    <td>@order.TotalAmount.ToString("C")</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="collapse-container">
+                        <table class="nested-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Discount</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>@item.ProductName</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td>@item.Discount.ToString("C")</td>
+                                        <td>@item.TotalPrice.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

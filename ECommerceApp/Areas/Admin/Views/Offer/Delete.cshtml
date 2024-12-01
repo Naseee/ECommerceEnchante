@@ -1,0 +1,40 @@
+﻿@model ECommerceApp.Models.Offer
+
+
+<form method="post">
+    <div>
+        <h2>Add Offer</h2>
+    </div>
+
+    <div>
+        <label asp-for="OfferName"></label>
+        <input asp-for="OfferName" class="form-control" />
+        <span asp-validation-for="OfferName"></span>
+    </div>
+    
+    
+    <div>
+        <label asp-for="DiscountPercentage"></label>
+        <input asp-for="DiscountPercentage" class="form-control" />
+        <span asp-validation-for="DiscountPercentage"></span>
+    </div>
+    <div>
+        <label asp-for="StartDate"></label>
+        <input asp-for="StartDate" class="form-control" />
+        <span asp-validation-for="StartDate"></span>
+    </div>
+    <div>
+        <label asp-for="EndDate"></label>
+        <input asp-for="EndDate" class="form-control" />
+        <span asp-validation-for="EndDate"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <button type="submit" class="btn btn-primary form-control">Delete</button>
+        </div>
+        <div class="col-6">
+            <a asp-controller="Offer" asp-action="Index" class="btn btn-dark">Back To List</a>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,37 @@
+﻿@model ECommerceApp.Models.Address
+
+<form method="post">
+    <div>
+        <h2>Delete Address</h2>
+    </div>
+    <input asp-for="AddressId" hidden />
+    <div>
+        <label asp-for="Street" class="p-0"></label>
+        <input asp-for="Street" class="form-control" />
+        <span asp-validation-for="Street"></span>
+    </div>
+    <div>
+        <label asp-for="City"></label>
+        <input asp-for="City" class="form-control" />
+        <span asp-validation-for="City"></span>
+    </div>
+
+    <div>
+        <label asp-for="State"></label>
+        <input asp-for="State" class="form-control" />
+        <span asp-validation-for="State"></span>
+    </div>
+    <div>
+        <label asp-for="PostalCode"></label>
+        <input asp-for="PostalCode" class="form-control" />
+        <span asp-validation-for="PostalCode"></span>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <button type="submit" class="btn btn-primary form-control">Delete</button>
+        </div>
+        <div class="col-6">
+            <a asp-controller="Address" asp-action="Index" class="btn btn-dark">Back To List</a>
+        </div>
+    </div>
+</form>
