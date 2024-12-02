@@ -14,6 +14,7 @@ using OfficeOpenXml;
 using ECommerceApp.Settings;
 using ECommerceApp.Services.IServices;
 using ECommerceApp.Services;
+using ECommerceApp.Data.DbInitialiser;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IDbInitialiser, DbInitialiser>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOfferDiscountService, OfferDiscountService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -97,6 +99,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
+SeedDatabase();
 app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
@@ -104,3 +107,11 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+void SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitialiser = scope.ServiceProvider.GetRequiredService<IDbInitialiser>();
+        dbInitialiser.Initialize();
+    }
+}
