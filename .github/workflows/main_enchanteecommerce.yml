@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ECommerceApplication
+name: Build and deploy ASP.Net Core app to Azure Web App - EnchanteECommerce
 
 on:
   push:
@@ -51,15 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78378091C9304C7192F7B083B369D2CA }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0338FEFA57C445A5BD195E1F1F015904 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2C38F512D330445A863758CC98969469 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_84DF276D936F41DBA95F8D1BE7628879 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2AB82C20DEFB42AF8C5495D5164E3083 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CD6A8698CC7A48588769A262B6C20CA0 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ECommerceApplication'
+          app-name: 'EnchanteECommerce'
           slot-name: 'Production'
           package: .
           
