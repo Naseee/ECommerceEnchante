@@ -30,28 +30,23 @@ namespace ECommerceApp.Areas.Customer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly PaypalServices _paypalServices;
         private readonly IOfferDiscountService _discount;
         private readonly IOrderProcessingService _orderProcessingService;
         public HomeController(ILogger<HomeController> logger,
             UserManager<ApplicationUser> userManager,
             IUnitOfWork unitOfWork,IOfferDiscountService discount,
-            PaypalServices paypalServices,IOrderProcessingService orderProcessingService)
+            IOrderProcessingService orderProcessingService)
         {
             _logger = logger;
             _discount = discount;
             _userManager = userManager;
-            _paypalServices = paypalServices;
             _unitOfWork = unitOfWork;
             _orderProcessingService = orderProcessingService;
         }
 
         public IActionResult Index(string searchtext, int? categoryId, decimal? minPrice, decimal? maxPrice, string sortBy)
         {
-
-
             var products = _unitOfWork.Product.GetAll(u => !u.IsDeleted, includeProperties: "Category,ProductImages,ProductOffers,Category.CategoryOffers");
-
 
             HomeVM homeVM = new HomeVM
             {
@@ -164,11 +159,10 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 ModelState.AddModelError("", "Product not found.");
                 return View(cart);
             }
-
             if (cart.Quantity > productFromDb.product_Quantity)
             {
                 ModelState.AddModelError("Quantity", $"Only {productFromDb.product_Quantity} items are available in stock.");
-                cart.Product = productFromDb; // Ensure the Product details are available in the view
+                cart.Product = productFromDb; 
                 return View(cart);
             }
             if (ModelState.IsValid)
@@ -194,7 +188,6 @@ namespace ECommerceApp.Areas.Customer.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
-
 
         [HttpPost]
         [Authorize]
@@ -240,7 +233,6 @@ namespace ECommerceApp.Areas.Customer.Controllers
         [HttpGet]
         public IActionResult UserOrderHistory(string timePeriod)
         {
-
             IEnumerable<OrderHeader> orders;
 
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -267,12 +259,10 @@ namespace ECommerceApp.Areas.Customer.Controllers
                     break;
             }
 
-
             return View(orders);
         }
         public IActionResult UserOrderDetails(int id)
         {
-
             try
             {
                 string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -355,7 +345,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
         }
         [HttpPost]
         [Authorize]
-        public IActionResult ReturnOrder(OrderVM orderVM)
+        public async Task<IActionResult> ReturnOrder(OrderVM orderVM)
         {
             var orderHeader = _unitOfWork.OrderHeader.Get(
                 u => u.Id == orderVM.OrderHeader.Id
@@ -374,26 +364,12 @@ namespace ECommerceApp.Areas.Customer.Controllers
 
             if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
             {
-                if (orderHeader.paymentMethod == PaymentMethods.visa)
+                bool isReturned = await _orderProcessingService.ReturnOrder(orderHeader, orderDetail, orderVM.Quantity);
+
+                if (!isReturned)
                 {
-
-                    var refundAmount = (decimal)(orderDetail.Price * orderVM.Quantity);
-                    var options = new RefundCreateOptions
-                    {
-                        Reason = RefundReasons.RequestedByCustomer,
-                        PaymentIntent = orderHeader.paymentIntentId,
-                        Amount = (long)(refundAmount * 100) // Stripe expects amount in cents
-                    };
-                    var service = new RefundService();
-                    Refund refund = service.Create(options);
-                }
-
-
-                var wallet = _unitOfWork.Wallet.Get(u => u.UserId == orderHeader.UserId);
-                if (wallet != null)
-                {
-                    wallet.balance += (decimal)(orderDetail.Price * orderVM.Quantity);
-                    _unitOfWork.Wallet.Update(wallet);
+                    TempData["error"] = "An error occurred while canceling the order. Please try again later.";
+                    return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
                 }
             }
 

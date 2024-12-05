@@ -22,7 +22,6 @@ namespace ECommerceApp.Areas.Admin.Controllers
     [Authorize]
     public class OrderController : Controller
     {
-        private readonly PaypalServices _paypalServices;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<OrderController> _logger;
         private readonly UserManager<ApplicationUser> _user;
@@ -33,13 +32,11 @@ namespace ECommerceApp.Areas.Admin.Controllers
         public OrderDetail orderDetail { get; set; }
 
         public OrderController(IUnitOfWork unitOfWork, ILogger<OrderController> logger
-           , UserManager<ApplicationUser> user,IOrderProcessingService orderProcessingService,
-            PaypalServices paypalServices)
+           , UserManager<ApplicationUser> user,IOrderProcessingService orderProcessingService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _user = user;
-            _paypalServices = paypalServices;
             _orderProcessingService = orderProcessingService;
         }
 
@@ -89,19 +86,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
                 _unitOfWork.OrderHeader.Update(orderHeaderFromDb);
                 _unitOfWork.Save();
             }
-            // var addressFromDb = orderHeaderFromDb.Address;
-            // if (addressFromDb != null)
-            // {
-
-            //   addressFromDb.Street = orderVM.OrderHeader.Address.Street;
-            // addressFromDb.City = orderVM.OrderHeader.Address.City;
-            //addressFromDb.State = orderVM.OrderHeader.Address.State;
-            //    addressFromDb.PostalCode = orderVM.OrderHeader.Address.PostalCode;
-
-            //    _addressRepository.Update(addressFromDb);
-            //    _addressRepository.Save();
-
-            // }
+            
             return RedirectToAction("OrderDetails", new { id = orderHeaderFromDb.Id });
 
         }
@@ -111,41 +96,48 @@ namespace ECommerceApp.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult StartProcessing()
         {
-            var orderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "Address");
-            orderFromDb.OrderStatus = StaticDetails.StatusInProcess;
-            _unitOfWork.OrderHeader.Update(orderFromDb);
+            var success = _orderProcessingService.UpdateOrderStatus(orderVM.OrderHeader.Id, StaticDetails.StatusInProcess, DateTime.Now);
 
+            if (!success)
+            {
+                TempData["error"] = "Failed to update the order status.";
+                return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
+            }
 
-            _unitOfWork.Save();
-            return RedirectToAction("OrderDetails", new { id = orderFromDb.Id });
+            TempData["success"] = "Order has been processed successfully.";
+            return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
 
         }
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public IActionResult ShipOrder()
         {
-            var orderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "Address");
+            var success = _orderProcessingService.UpdateOrderStatus(orderVM.OrderHeader.Id, StaticDetails.StatusShipped, DateTime.Now);
 
-            orderFromDb.OrderStatus = StaticDetails.StatusShipped;
-            _unitOfWork.OrderHeader.Update(orderFromDb);
-            orderFromDb.ShippingDate = DateTime.Now;
-            _unitOfWork.Save();
+            if (!success)
+            {
+                TempData["error"] = "Failed to update the order status.";
+                return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
+            }
 
-            return RedirectToAction("OrderDetails", new { id = orderFromDb.Id });
+            TempData["success"] = "Order has been shipped successfully.";
+            return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
 
         }
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public IActionResult DeliverOrder()
         {
-            var orderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "Address");
+            var success = _orderProcessingService.UpdateOrderStatus(orderVM.OrderHeader.Id, StaticDetails.StatusDelivered, DateTime.Now);
 
-            orderFromDb.OrderStatus = StaticDetails.StatusDelivered;
-            _unitOfWork.OrderHeader.Update(orderFromDb);
-            orderFromDb.DeliveryDate = DateTime.Now;
-            _unitOfWork.Save();
+            if (!success)
+            {
+                TempData["error"] = "Failed to update the order status.";
+                return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
+            }
 
-            return RedirectToAction("OrderDetails", new { id = orderFromDb.Id });
+            TempData["success"] = "Order has been shipped successfully.";
+            return RedirectToAction("OrderDetails", new { id = orderVM.OrderHeader.Id });
 
         }
         [HttpPost]
@@ -164,18 +156,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
             }
             if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
             {
-                // if (orderHeader.paymentMethod == PaymentMethods.visa)
-                // {
-                // var refundAmount = (decimal)(orderDetail.Price * orderVM.Quantity);
-                //  var options = new RefundCreateOptions
-                // {
-                //      Reason = RefundReasons.RequestedByCustomer,
-                //     PaymentIntent = orderHeader.paymentIntentId,
-                //      Amount = (long)(refundAmount * 100) // Stripe expects amount in cents
-                //  };
-                //  var service = new RefundService();
-                //   Refund refund = service.Create(options);
-                //}
+                
                 bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail, orderVM.Quantity);
 
                 if (!isCancelled)

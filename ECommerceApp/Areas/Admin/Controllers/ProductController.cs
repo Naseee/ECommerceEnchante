@@ -35,7 +35,8 @@ namespace ECommerceApp.Areas.Admin.Controllers
             productVM = new ProductVM
             {
                 Product = new Product(),
-                ProductImages = new List<ProductImage>()
+                ProductImages = new List<ProductImage>(),
+                Categories=_unitOfWork.Category.GetAll(null)
             };
             return View(productVM);
         }
@@ -85,16 +86,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
                     }
                 }
                
-                
-               // var categoryOffer = _unitOfWork.CategoryOffer.Get(
-           // u => u.CategoryId == productVM.Product.CategoryId && u.IsActiveOffer==true
-      //  );
-              //  if (categoryOffer != null)
-            //    {
-             //       var discountedPrice = productVM.Product.Price * (1 - (double)(categoryOffer.DiscountPercentage / 100));
-             //       productVM.Product.DiscountedPrice = discountedPrice;
-             //       productVM.Product.IsActiveOffer = true;
-             //   }
+               
                 _unitOfWork.Product.Add(productVM.Product);
                 _unitOfWork.Save();
 
@@ -110,7 +102,8 @@ namespace ECommerceApp.Areas.Admin.Controllers
             productVM = new ProductVM()
             {
                 Product = _unitOfWork.Product.Get(u => u.Id == Id, includeProperties: "ProductImages"),
-                ProductImages = _unitOfWork.ProductImage.GetAll(u => u.ProductId == Id, null)
+                ProductImages = _unitOfWork.ProductImage.GetAll(u => u.ProductId == Id, null),
+                Categories=_unitOfWork.Category.GetAll(null)
             };
 
             if (productVM.Product == null)
@@ -157,17 +150,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
                     productVM.Product.ProductImages.Add(productImage);
                 }
             }
-            
-           // var categoryOffer = _unitOfWork.CategoryOffer.Get(
-           // u => u.CategoryId == productVM.Product.CategoryId && u.IsActiveOffer==true
-      //  );
-
-            //if (categoryOffer != null)
-           // {
-            //    var discountedPrice = productVM.Product.Price * (1 - (double)(categoryOffer.DiscountPercentage / 100));
-           //     productVM.Product.DiscountedPrice = discountedPrice;
-           //     productVM.Product.IsActiveOffer = true;
-          //  }
+           
 
             _unitOfWork.Product.Update(productVM.Product);
             _unitOfWork.Save();

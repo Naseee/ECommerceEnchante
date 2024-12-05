@@ -13,7 +13,8 @@ namespace ECommerceApp.Settings
         private readonly string _clientId;
         private readonly string _clientSecret;
         private readonly string _mode;
-
+        public string SuccessUrlPath { get; set; }
+        public string CancelUrlPath { get; set; }
         public PaypalServices(string clientId, string secret, string mode)
         {
             _clientId = clientId;

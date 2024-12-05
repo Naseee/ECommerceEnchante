@@ -25,8 +25,18 @@
                     <span asp-validation-for="Product.Price" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.CategoryId" class="form-label fw-bold">Category ID</label>
-                    <input asp-for="Product.CategoryId" type="number" class="form-control" min="1" placeholder="Enter category ID" />
+                    <label asp-for="Product.CategoryId" class="form-label fw-bold">Category</label>
+                    <select asp-for="Product.CategoryId" class="form-control">
+                     <option value="">-- Select Category --</option>
+                     @foreach (var category in Model.Categories)
+                      {
+                            <option value="@category.Id" selected="@(category.Id == Model.Product.CategoryId ? "selected" : null)">
+                                @category.Name
+                            </option>
+
+
+                      }
+                  </select>
                     <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
                 </div>
                 <div class="mb-3">

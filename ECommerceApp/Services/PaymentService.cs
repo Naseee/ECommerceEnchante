@@ -15,15 +15,15 @@ namespace ECommerceApp.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaypalServices _paypalServices;
-        private readonly IConfiguration _configuration;
+        private readonly AppSettings _appSettings;
         private readonly ILogger<PaymentService> _logger;
         
-        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices,IConfiguration configuration, ILogger<PaymentService> logger)
+        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IOptions<AppSettings> appSettings, ILogger<PaymentService> logger)
         {
             _unitOfWork = unitOfWork;
             _paypalServices = paypalServices;
             _logger = logger;
-            _configuration = configuration;
+            _appSettings = appSettings.Value;
         }
 
         public async Task<IActionResult> ProcessPaymentAsync(OrderHeader orderHeader, string paymentOption, string userId, CartVM cartVM)
@@ -48,7 +48,7 @@ namespace ECommerceApp.Services
         }
         private IActionResult ProcessCODPayment(OrderHeader orderHeader)
         {
-            if (orderHeader.OrderTotal < 100)
+            if (orderHeader.OrderTotal < (double)_appSettings.Payment.CODMaxAmount)
             {
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusInProcess, StaticDetails.PaymentStatusInProgress);
                 orderHeader.paymentMethod = PaymentMethods.cod;
@@ -88,7 +88,7 @@ namespace ECommerceApp.Services
                 _unitOfWork.OrderHeader.Update(orderHeader);
                 _unitOfWork.Save();
 
-                return new OkResult(); // Indicate success
+                return new OkResult(); 
             }
             _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusFailed, StaticDetails.PaymentStatusFailed);
 
@@ -100,14 +100,14 @@ namespace ECommerceApp.Services
         private async Task<IActionResult> ProcessPayPalPayment(OrderHeader orderHeader)
         {
 
-            string domain = "https://localhost:7163/";
-            string successUrl = $"{domain}Customer/Cart/OrderConfirmation/{orderHeader.Id}";
-            string cancelUrl = domain + "Customer/Cart/Index";
+            string domain = _appSettings.Domain;
+            string successUrl = $"{domain}{_appSettings.Payment.PayPalSuccessPath}{orderHeader.Id}";
+            string cancelUrl = domain + _appSettings.Payment.PayPalCancelPath;
 
             try
             {
                 string approvalUrl = await _paypalServices.CreateOrder((decimal)orderHeader.OrderTotal, "USD", successUrl, cancelUrl);
-                orderHeader.PayPalOrderId = approvalUrl.Split("token=").Last();  // Extract PayPal order ID from the URL
+                orderHeader.PayPalOrderId = approvalUrl.Split("token=").Last();  
                 orderHeader.paymentMethod = PaymentMethods.paypal;
                 _unitOfWork.OrderHeader.Update(orderHeader);
                 _unitOfWork.Save();
@@ -128,11 +128,11 @@ namespace ECommerceApp.Services
 
         private IActionResult ProcessVisaPayment(OrderHeader orderHeader, CartVM cartVM)
         {
-            string domain = "https://localhost:7163/";
+            string domain = _appSettings.Domain;
             var options = new SessionCreateOptions
             {
-                SuccessUrl = $"{domain}Customer/Cart/OrderConfirmation/{orderHeader.Id}",
-                CancelUrl = $"{domain}Customer/Cart/Index",
+                SuccessUrl = $"{domain}{_appSettings.Payment.VisaSuccessPath}{orderHeader.Id}",
+                CancelUrl = domain + _appSettings.Payment.VisaCancelPath,
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment"
             };
@@ -144,7 +144,7 @@ namespace ECommerceApp.Services
                     PriceData = new SessionLineItemPriceDataOptions
                     {
                         UnitAmount = (long)(item.Product.Price * 100),
-                        Currency = "usd",
+                        Currency = _appSettings.DefaultCurrency,
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = item.Product.Name,
