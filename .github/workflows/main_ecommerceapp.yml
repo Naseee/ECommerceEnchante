@@ -1,7 +1,6 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - ECommerceApp
+name: Build and Deploy ASP.Net Core App to Azure Web App
 
 on:
   push:
@@ -14,24 +13,51 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
-      - name: Build with dotnet
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build the application
         run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Publish the application
+        run: dotnet publish --configuration Release --output ./publish
 
-      - name: Upload artifact for deployment job
+      - name: Zip the published files
+        run: |
+          cd ./publish
+          zip -r ../publish.zip .
+
+      - name: Upload the publish artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: publish-artifact
+          path: ./publish.zip
 
- 
-          
+  deploy:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-artifact
+
+      - name: Deploy to Azure Web App using ZipDeploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'ECommerceLearningApp'  # Replace with your app's name
+          slot-name: 'Production'  # Or replace with your deployment slot
+          package: './publish.zip'
+
+        env:
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+
