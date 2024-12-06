@@ -30,10 +30,9 @@ jobs:
       - name: Publish the application
         run: dotnet publish --configuration Release --output ./publish
 
-      - name: Zip the published files
-        run: |
-          cd ./publish
-          zip -r ../publish.zip .
+      - name: Zip the published files using PowerShell
+        shell: pwsh
+        run: Compress-Archive -Path ./publish/* -DestinationPath ./publish.zip
 
       - name: Upload the publish artifact
         uses: actions/upload-artifact@v4
@@ -51,13 +50,10 @@ jobs:
         with:
           name: publish-artifact
 
-      - name: Deploy to Azure Web App using ZipDeploy
+      - name: Deploy to Azure Web App using Publish Profile
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ECommerceLearningApp'  # Replace with your app's name
-          slot-name: 'Production'  # Or replace with your deployment slot
+          app-name: 'ECommerceLearningApp' # Your Azure App Service name
+          slot-name: 'Production' # Change this if using deployment slots
           package: './publish.zip'
-
-        env:
-          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
