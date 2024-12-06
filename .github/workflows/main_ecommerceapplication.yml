@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ECommerceApplication
+name: Build and Deploy ASP.Net Core App to Azure Web App
 
 on:
   push:
@@ -14,52 +14,50 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
-      - name: Build with dotnet
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build the application
         run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Publish the application
+        run: dotnet publish --configuration Release --output ./publish
 
-      - name: Upload artifact for deployment job
+      - name: Zip the published files
+        run: |
+          cd ./publish
+          zip -r ../publish.zip .
+
+      - name: Upload the publish artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: publish-artifact
+          path: ./publish.zip
 
   deploy:
     runs-on: windows-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
 
     steps:
-      - name: Download artifact from build job
+      - name: Download publish artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F340D61C860C460483CCB08D7970E7B3 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CDAC6A8FB10F48F08D1EE393A2965F9A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E53F658CC28B40789E896C1FFBCEDEF5 }}
+          name: publish-artifact
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+      - name: Deploy to Azure Web App using Publish Profile
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ECommerceApplication'
-          slot-name: 'Production'
-          package: .
+          app-name: 'ECommerceLearningApp' # Your Azure App Service name
+          slot-name: 'Production' # Change this if using deployment slots
+          package: './publish.zip'
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+
           
