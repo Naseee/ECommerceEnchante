@@ -186,7 +186,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 }
                 _unitOfWork.Save();
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Shop");
         }
 
         [HttpPost]
