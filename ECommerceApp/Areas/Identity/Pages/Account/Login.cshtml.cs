@@ -130,16 +130,21 @@ namespace ECommerceApp.Areas.Identity.Pages.Account
                     return Page(); // Redirects back to the login page with an error
                 }
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded&&User.IsInRole("Customer"))
+                if (result.Succeeded)
                 {
-                    _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    if (userRoles.Contains("Admin"))
+                    {
+                        _logger.LogInformation("Admin user logged in.");
+                        return RedirectToAction("Index", "Salesreport", new { area = "Admin" });
+                    }
+                    if (userRoles.Contains("Customer"))
+                    {
+                        _logger.LogInformation("Customer user logged in.");
+                        return LocalRedirect(returnUrl);
+                    }
                 }
-                if (result.Succeeded && User.IsInRole("Admin"))
-                {
-                    _logger.LogInformation("User logged in.");
-                    return RedirectToAction("Index", "Salesreport", new { area = "Admin" });
-                }
+
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
