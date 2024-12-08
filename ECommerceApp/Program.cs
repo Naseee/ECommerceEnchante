@@ -63,8 +63,6 @@ builder.Services.AddIdentity<ApplicationUser,IdentityRole>()
     .AddDefaultTokenProviders()
     .AddDefaultUI();
 
-
-
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -104,7 +102,7 @@ app.UseSession();
 SeedDatabase();
 app.MapRazorPages();
 app.MapControllerRoute(
-    name: "default",
+    name: "areas",
     pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 

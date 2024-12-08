@@ -32,13 +32,13 @@
                 <option value="">-- Select Category --</option>
                 @foreach (var category in Model.Categories)
                 {
-                    <option value="@category.Id" selected="@(category.Id == Model.Product.CategoryId ? "selected" : null)">
+                    <option value="@category.Id">
                         @category.Name
                     </option>
-
-
                 }
             </select>
+
+
             <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
         </div>
         <div class="col-md-4">

@@ -46,7 +46,18 @@ namespace ECommerceApp.Areas.Admin.Controllers
         public IActionResult Create(ProductVM productVM, List<IFormFile> files)
         {
 
-           
+            if (!ModelState.IsValid)
+            {
+
+                var errors = ModelState.Values
+                                       .SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+
+                return BadRequest(new { message = "Model validation failed", errors = errors });
+            }
+
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
