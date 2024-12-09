@@ -23,7 +23,7 @@ namespace ECommerceApp.Services
             _unitOfWork = unitOfWork;
             _paypalServices = paypalServices;
             _logger = logger;
-             domain = appSettings.Value.Domain;
+            // domain = appSettings.Value.Domain;
             
         }
 
@@ -102,7 +102,7 @@ namespace ECommerceApp.Services
         private async Task<IActionResult> ProcessPayPalPayment(OrderHeader orderHeader)
         {
 
-           
+            string domain = "https://ecommerceapp-dbd3gba2hea5cdbj.australiaeast-01.azurewebsites.net/";
             string successUrl = $"{domain}{_paypalServices.SuccessPath}{orderHeader.Id}";
             string cancelUrl = domain + _paypalServices.CancelPath;
 
