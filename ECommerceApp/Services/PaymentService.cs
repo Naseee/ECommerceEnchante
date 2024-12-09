@@ -16,6 +16,7 @@ namespace ECommerceApp.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaypalServices _paypalServices;
         private readonly AppSettings _appSettings;
+        
         private readonly ILogger<PaymentService> _logger;
         
         public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IOptions<AppSettings> appSettings, ILogger<PaymentService> logger)
@@ -48,7 +49,8 @@ namespace ECommerceApp.Services
         }
         private IActionResult ProcessCODPayment(OrderHeader orderHeader)
         {
-            if (orderHeader.OrderTotal < (double)_appSettings.Payment.CODMaxAmount)
+            
+            if (orderHeader.OrderTotal <StaticDetails.CODMaxAmount)
             {
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusInProcess, StaticDetails.PaymentStatusInProgress);
                 orderHeader.paymentMethod = PaymentMethods.cod;
@@ -101,8 +103,8 @@ namespace ECommerceApp.Services
         {
 
             string domain = _appSettings.Domain;
-            string successUrl = $"{domain}{_appSettings.Payment.PayPalSuccessPath}{orderHeader.Id}";
-            string cancelUrl = domain + _appSettings.Payment.PayPalCancelPath;
+            string successUrl = $"{domain}{_paypalServices.SuccessPath}{orderHeader.Id}";
+            string cancelUrl = domain + _paypalServices.CancelPath;
 
             try
             {

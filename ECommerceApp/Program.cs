@@ -26,15 +26,22 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 builder.Services.AddMemoryCache();
 //builder.Services.AddAuthentication(options =>
 //{
- //   options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
- //   options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+//   options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//   options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 //})
 //.AddCookie()
 //.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
 //{
-  //  options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
-    //options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
+//  options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
+//options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
 //});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader());
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -93,6 +100,8 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+
 app.UseStaticFiles();
 StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 app.UseRouting();

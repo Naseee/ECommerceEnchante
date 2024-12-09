@@ -26,7 +26,8 @@
         public const string PaymentStatusRejected = "Rejected";
         public const string PaymentStatusRefunded = "refunded";
         public const string PaymentStatusPartiallyRefunded = "Partially Refunded";
-        
+
+        public const double CODMaxAmount = 100;
         
     }
    

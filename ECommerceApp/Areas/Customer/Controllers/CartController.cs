@@ -250,7 +250,6 @@ namespace ECommerceApp.Areas.Customer.Controllers
                                 _unitOfWork.OrderHeader.Update(orderHeader);
                                 _unitOfWork.Save();
 
-                              
                             }
                             else
                             {
@@ -286,8 +285,6 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 _unitOfWork.Save();
             }
             return View(id);
-
         }
-        
 }
 }
