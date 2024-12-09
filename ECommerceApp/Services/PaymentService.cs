@@ -103,7 +103,7 @@ namespace ECommerceApp.Services
         {
 
            
-            string successUrl = $"{domain}{_paypalServices.SuccessPath}{orderHeader.Id}";
+            string successUrl = domain+ _paypalServices.SuccessPath;
             string cancelUrl = domain + _paypalServices.CancelPath;
 
             try
