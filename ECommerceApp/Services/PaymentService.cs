@@ -15,8 +15,7 @@ namespace ECommerceApp.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaypalServices _paypalServices;
-        private readonly AppSettings _appSettings;
-        
+        private string domain { get; set; }
         private readonly ILogger<PaymentService> _logger;
         
         public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IOptions<AppSettings> appSettings, ILogger<PaymentService> logger)
@@ -24,7 +23,8 @@ namespace ECommerceApp.Services
             _unitOfWork = unitOfWork;
             _paypalServices = paypalServices;
             _logger = logger;
-            _appSettings = appSettings.Value;
+             domain = appSettings.Value.Domain;
+            
         }
 
         public async Task<IActionResult> ProcessPaymentAsync(OrderHeader orderHeader, string paymentOption, string userId, CartVM cartVM)
@@ -102,7 +102,7 @@ namespace ECommerceApp.Services
         private async Task<IActionResult> ProcessPayPalPayment(OrderHeader orderHeader)
         {
 
-            string domain = _appSettings.Domain;
+           
             string successUrl = $"{domain}{_paypalServices.SuccessPath}{orderHeader.Id}";
             string cancelUrl = domain + _paypalServices.CancelPath;
 
@@ -130,11 +130,11 @@ namespace ECommerceApp.Services
 
         private IActionResult ProcessVisaPayment(OrderHeader orderHeader, CartVM cartVM)
         {
-            string domain = _appSettings.Domain;
+           
             var options = new SessionCreateOptions
             {
-                SuccessUrl = $"{domain}{_appSettings.Payment.VisaSuccessPath}{orderHeader.Id}",
-                CancelUrl = domain + _appSettings.Payment.VisaCancelPath,
+                //SuccessUrl = $"{domain}{_appSettings.Payment.VisaSuccessPath}{orderHeader.Id}",
+               // CancelUrl = domain + _appSettings.Payment.VisaCancelPath,
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment"
             };
@@ -146,7 +146,7 @@ namespace ECommerceApp.Services
                     PriceData = new SessionLineItemPriceDataOptions
                     {
                         UnitAmount = (long)(item.Product.Price * 100),
-                        Currency = _appSettings.DefaultCurrency,
+                        Currency = "USD",
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = item.Product.Name,
