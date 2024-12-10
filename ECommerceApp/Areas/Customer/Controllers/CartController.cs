@@ -7,18 +7,13 @@ using ECommerceApp.Repository.IRepository;
 using ECommerceApp.Models;
 using ECommerceApp.Models.ViewModels;
 using ECommerceApp.Utility;
-using Microsoft.IdentityModel.Tokens;
-using ECommerceApp.ViewModels.Models;
 using Stripe;
-using ECommerceApp.Data.Migrations;
-using ECommerceApp.Repository;
-using Stripe.Climate;
-using static Microsoft.IO.RecyclableMemoryStreamManager;
-using ECommerceApp.Data;
 using ECommerceApp.Settings;
 using ECommerceApp.Services.IServices;
-using ECommerceApp.Services;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+
 
 namespace ECommerceApp.Areas.Customer.Controllers
 {
@@ -31,13 +26,14 @@ namespace ECommerceApp.Areas.Customer.Controllers
         private readonly IOfferDiscountService _discountService;
         private readonly IPaymentService _paymentService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICompositeViewEngine _viewEngine;
         [BindProperty]
         public CartVM cartVM { get; set; }
         public OrderHeader orderHeader { get; set; }
 		public OrderDetail orderDetail { get; set; }
         private readonly PaypalServices _paypalServices;
         
-		public CartController(IUnitOfWork unitOfWork,PaypalServices paypalServices
+		public CartController(IUnitOfWork unitOfWork,PaypalServices paypalServices, ICompositeViewEngine viewEngine
             ,UserManager<ApplicationUser> userManager,IPaymentService paymentService,
             ILogger<CartController> logger,IOfferDiscountService discountService)
         {
@@ -47,6 +43,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
             _discountService = discountService;
             _paymentService = paymentService;
             _logger = logger;
+            _viewEngine = viewEngine;
         }
 
         public IActionResult Index()
@@ -284,5 +281,45 @@ namespace ECommerceApp.Areas.Customer.Controllers
             }
             return View(id);
         }
-}
+        public async Task<IActionResult> GenerateInvoice(int id)
+        {
+            
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "OrderDetails,OrderDetails.Product");
+
+            
+            var htmlContent = await RenderViewToStringAsync("Invoice", orderHeader);
+
+            var renderer = new ChromePdfRenderer();
+            var pdf = renderer.RenderHtmlAsPdf(htmlContent);
+
+           
+                return File(pdf.BinaryData, "application/pdf", $"Invoice_{id}.pdf");
+            
+        }
+
+        // Helper method to render the view to string
+        private async Task<string> RenderViewToStringAsync(string viewName, object model)
+        {
+            ViewData.Model = model;
+            using (var sw = new StringWriter())
+            {
+                var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
+                if (!viewResult.Success)
+                {
+                    throw new InvalidOperationException($"View '{viewName}' not found.");
+                }
+
+                var viewContext = new ViewContext(
+                    ControllerContext,
+                    viewResult.View,
+                    ViewData,
+                    TempData,
+                    sw, new HtmlHelperOptions()
+                );
+
+                viewResult.View.RenderAsync(viewContext).GetAwaiter().GetResult();
+                return sw.ToString();
+            }
+        }
+    }
 }

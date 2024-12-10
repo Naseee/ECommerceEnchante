@@ -17,8 +17,9 @@ using ECommerceApp.Services;
 using ECommerceApp.Data.DbInitialiser;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
-var licenseKey = "IRONSUITE.NASIYA864.GMAIL.COM.10372-571DFAEB11-B6ESLXHCR42A37HS-Z2S3E6KRF5JR-CMY3EIN6W6JE-NKAVPYV5YE7J-H4PGU43JOR5H-YON3B25ZPJB7-KZ57AN-TZUV4ERJMD2OEA-DEPLOYMENT.TRIAL-6KJU2Z.TRIAL.EXPIRES.04.DEC.2024";
+var licenseKey = "IRONSUITE.NASIYA864.GMAIL.COM.10372-8B846A5FC6-H4FPE7VIO7PHLT-TWBU3OL2PCPO-6J63SIU4VUUT-IUENGTK6IICN-BRCVMUJSEQUV-OY2MK7Q437TF-C3Z4T6-TNQ3RD3ZJV6OEA-DEPLOYMENT.TRIAL-RHE2KY.TRIAL.EXPIRES.09.JAN.2025";
 IronPdf.License.LicenseKey = licenseKey;
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -40,12 +41,13 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddScoped<IDbInitialiser, DbInitialiser>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOfferDiscountService, OfferDiscountService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderProcessingService, OrderProcessingService>();
-builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+builder.Services.Configure<StripeService>(builder.Configuration.GetSection("AppSettings"));
 
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -78,6 +80,7 @@ builder.Services.AddSingleton(x => new PaypalServices(builder.Configuration["Pay
     builder.Configuration["PayPalSettings:Mode"]));
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.AddRazorPages();
+builder.Services.AddScoped<StripeService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddControllersWithViews();
 

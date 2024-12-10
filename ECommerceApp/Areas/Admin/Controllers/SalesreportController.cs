@@ -166,6 +166,7 @@ namespace ShoppingCart.Areas.Admin.Controllers
             
             return View(pagedReport);
         }
+
         public IActionResult GeneratePdf(DateTime? startDate,DateTime? endDate)
         {
             DateTime startdate = startDate ?? DateTime.MinValue;

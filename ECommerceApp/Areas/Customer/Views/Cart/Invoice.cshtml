@@ -1,0 +1,72 @@
+﻿@model ECommerceApp.Models.OrderHeader
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .invoice-header {
+            text-align: center;
+        }
+
+            .invoice-header h2 {
+                margin: 0;
+            }
+
+        .invoice-details {
+            margin-top: 20px;
+        }
+
+            .invoice-details th, .invoice-details td {
+                padding: 5px;
+                border: 1px solid #ccc;
+            }
+
+        .invoice-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <h2>Invoice</h2>
+        <p>Order ID: @Model.Id</p>
+        <p>Date: @Model.OrderDate.ToString("MM/dd/yyyy")</p>
+    </div>
+
+    <div class="invoice-details">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@item.Product.Name</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Product.Price.ToString("C")</td>
+                        <td>@(item.Product.Price * item.Quantity).ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="invoice-footer">
+        <h4>Total: @Model.OrderTotal.ToString("C")</h4>
+    </div>
+</body>
+</html>

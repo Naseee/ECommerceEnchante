@@ -4,15 +4,27 @@
     ViewData["Title"] = "Order Confirmation";
 }
 
+<div class="card order-confirmation-container text-center">
+    <div class="card-body">
+        <h2 class="card-title">Order Confirmation</h2>
 
-<div class="order-confirmation-container">
-    <h2>Order Confirmation</h2>
+        <p class="card-text">Thank you for your purchase! Your order number is <b>@Model</b>.</p>
 
-    <p>Thank you for your purchase! Your order number is <b>@Model</b>.</p>
-    <p> You can  <button onclick="downloadInvoice(12345)">Download Your Invoice</button>.</p>
+        <p class="card-text">
+            <form method="get" action="@Url.Action("GenerateInvoice", "Cart", new { id = Model })">
+              
+              You can Download your Invoice Here  <button type="submit" class="btn btn-primary"> Download Your Invoice</button>. 
+            </form>
+            
+        </p>
+    </div>
 </div>
-    <p>Did you know? You can earn <b>$10 cashback</b> by inviting your friends to shop with us! Share your referral code now.</p>
-    
-</div>
 
+<div class="card mt-4 text-center">
+    <div class="card-body">
+        <p class="card-text">
+            Did you know? You can earn <b>$10 cashback</b> by inviting your friends to shop with us! Share your referral code now.
+        </p>
+    </div>
+</div>
 

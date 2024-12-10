@@ -165,7 +165,7 @@
                 </li>
                 <li class="list-group-item d-flex justify-content-between bg-light">
                     <span class="text-info">Shipping Charge (USD):</span>
-                    <strong class="text-info">@Model.OrderHeader.ShippingCharge</strong>
+                    <strong class="text-info">@Model.OrderHeader.ShippingCharge.ToString()</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between bg-light">
                     <span class="text-info">Total (USD):</span>
@@ -173,16 +173,16 @@
                 </li>
             }
             else
-            {
+            {    
                 <li class="list-group-item d-flex justify-content-between bg-light">
                     <span class="text-info">SubTotal (USD):</span>
-                    <strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+                    <strong class="text-info">$@(Model.OrderHeader.OrderTotal - Model.OrderHeader.ShippingCharge)</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between bg-light">
                     <span class="text-info">Shipping Charge (USD):</span>
-                    @if (@Model.OrderHeader.OrderTotal > 100)
+                    @if (@Model.OrderHeader.OrderTotal < 100)
                     {
-                        <strong class="text-info">$10.ToString("C")</strong>
+                        <strong class="text-info">@Model.OrderHeader.ShippingCharge?.ToString("C")</strong>
                     }
                     else
                     {

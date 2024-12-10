@@ -68,6 +68,7 @@
                         <th>Transaction ID</th>
                         <th>Amount</th>
                         <th>Date</th>
+                        <th>Description</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +80,7 @@
                                 <td>@transaction.TransactionId</td>
                                 <td class="text-success">@transaction.Amount.ToString("C")</td>
                                 <td>@transaction.TransactionDate.ToShortDateString()</td>
+                                <td>@transaction.Description</td>
                             </tr>
                         }
                     }

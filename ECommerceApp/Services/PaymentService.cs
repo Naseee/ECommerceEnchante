@@ -15,16 +15,17 @@ namespace ECommerceApp.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaypalServices _paypalServices;
-       
+        private readonly StripeService _stripeService;
         private readonly ILogger<PaymentService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IHttpContextAccessor httpContext, ILogger<PaymentService> logger)
+        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, 
+            IHttpContextAccessor httpContext, ILogger<PaymentService> logger,StripeService stripeService)
         {
             _unitOfWork = unitOfWork;
             _paypalServices = paypalServices;
             _logger = logger;
             _httpContextAccessor = httpContext;
-            
+            _stripeService = stripeService;
         }
 
         public async Task<IActionResult> ProcessPaymentAsync(OrderHeader orderHeader, string paymentOption, string userId, CartVM cartVM)
@@ -129,10 +130,13 @@ namespace ECommerceApp.Services
 
         private IActionResult ProcessVisaPayment(OrderHeader orderHeader, CartVM cartVM)
         {
+            var request = _httpContextAccessor.HttpContext.Request;
+            string domain = $"{request.Scheme}://{request.Host}/";
             var options = new SessionCreateOptions
             {
-                //SuccessUrl = $"{domain}{_appSettings.Payment.VisaSuccessPath}{orderHeader.Id}",
-               // CancelUrl = domain + _appSettings.Payment.VisaCancelPath,
+
+                SuccessUrl = $"{domain}{_stripeService.SuccessUrl}/{orderHeader.Id}",
+                CancelUrl = domain + _stripeService.CancelUrl,
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment"
             };
