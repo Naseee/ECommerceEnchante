@@ -24,6 +24,7 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 // Add services to the container.
 builder.Services.AddMemoryCache();
+
 //builder.Services.AddAuthentication(options =>
 //{
 //   options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -73,6 +74,7 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddSingleton(x => new PaypalServices(builder.Configuration["PayPalSettings:ClientId"],
     builder.Configuration["PayPalSettings:Secret"],
+   
     builder.Configuration["PayPalSettings:Mode"]));
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.AddRazorPages();

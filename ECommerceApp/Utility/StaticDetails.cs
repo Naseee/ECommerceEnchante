@@ -28,7 +28,9 @@
         public const string PaymentStatusPartiallyRefunded = "Partially Refunded";
 
         public const double CODMaxAmount = 100;
-        
+        public const double FreeShippingAmount = 100;
+        public const double ShippingCharge = 10;
+
     }
    
 }

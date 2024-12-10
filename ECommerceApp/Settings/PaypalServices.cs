@@ -13,6 +13,7 @@ namespace ECommerceApp.Settings
         private readonly string _clientId;
         private readonly string _clientSecret;
         private readonly string _mode;
+       
         public string SuccessPath { get; set; }
         public string CancelPath { get; set; }
         public PaypalServices(string clientId, string secret, string mode)
@@ -20,7 +21,8 @@ namespace ECommerceApp.Settings
             _clientId = clientId;
             _clientSecret = secret;
             _mode = mode;
-            SuccessPath = "Customer/Cart/OrderConfirmation/";
+
+            SuccessPath = "Customer/Cart/OrderConfirmation";
             CancelPath = "Customer/Cart/Index";
         }
 

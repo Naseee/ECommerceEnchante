@@ -9,8 +9,9 @@
         @ViewBag.message
     </div>
 }
-
-<form method="post">
+<div id="paymentError" class="alert alert-danger d-none"></div>
+<form method="post" action="@Url.Action("OrderSummary", "Cart", new { area = "Customer" })">
+    
     <br />
     <div class="container">
         <div class="card shadow-lg border-0 rounded-lg">
@@ -83,13 +84,34 @@
                                     </li>
                                 }
                                 <li class="list-group-item d-flex justify-content-between bg-light">
-                                    <small class="text-info">Total (USD): </small>
+                                    <small class="text-info">SubTotal (USD): </small>
                                     <strong class="text-info" id="OrderTotalDisplay">
                                         @(Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal ?
                                             Model.orderHeader.DiscountedTotal.ToString("C") :
                                             Model.orderHeader.OrderTotal.ToString("C"))
                                     </strong>
                                 </li>
+                               
+                                <li class="list-group-item d-flex justify-content-between bg-light">
+                                    <small class="text-info">Shipping Charge (USD): </small>
+                                    <strong class="text-info" id="OrderTotalDisplay">
+                                        @(Model.orderHeader.OrderTotal < @ViewBag.FreeShippingAmount
+                                            ? @ViewBag.ShippingCharge.ToString("C")
+                                            : "Free")
+                                    </strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between bg-light">
+                                    <small class="text-info">Total (USD): </small>
+                                    <strong class="text-info" id="OrderTotalDisplay">
+                                        @(
+                                            (Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal
+                                            ? Model.orderHeader.DiscountedTotal
+                                            : Model.orderHeader.OrderTotal)
+                                            + (Model.orderHeader.OrderTotal < @ViewBag.FreeShippingAmount ? @ViewBag.ShippingCharge : 0)
+                                            )
+                                    </strong>
+                                </li>
+                                
                             </ul>
 
                             <!-- Available Coupons Section -->
@@ -132,11 +154,11 @@
                             Estimate Arrival Date: @DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
                         </p>
                     </div>
-                    <div class="col-12 col-md-4 text-center">
-                        <button type="submit" name="paymentOption" value="cod" class="btn btn-success btn-lg my-2 rounded-pill">Cash on Delivery</button>
-                        <button type="submit" name="paymentOption" value="paypal" class="btn btn-warning btn-lg my-2 rounded-pill" style="font-weight: bold; border-color: #ffc439;">PayPal</button>
-                        <button type="submit" name="paymentOption" value="visa" class="btn btn-dark btn-lg my-2 rounded-pill">Visa Card</button>
-                        <button type="submit" name="paymentOption" value="wallet" class="btn btn-primary btn-lg my-2 rounded-pill">Wallet</button>
+                    <div class="col-12 col-md-4 text-center">button
+                    <button type="button" name="paymentOption" value="cod" class="btn btn-success btn-lg my-2 rounded-pill">Cash on Delivery</button>
+                    <button type="button" name="paymentOption" value="paypal" class="btn btn-warning btn-lg my-2 rounded-pill" style="font-weight: bold; border-color: #ffc439;">PayPal</button>
+                    <button type="button" name="paymentOption" value="visa" class="btn btn-dark btn-lg my-2 rounded-pill">Visa Card</button>
+                    <button type="button" name="paymentOption" value="wallet" class="btn btn-primary btn-lg my-2 rounded-pill">Wallet</button>
                     </div>
                 </div>
             </div>
@@ -169,4 +191,46 @@ const couponDiscountPercentage = selectedCoupon ? parseFloat('@(Model.Coupon?.Di
     document.addEventListener("DOMContentLoaded", function () {
         updateCouponCodeDisplay();
     });
+
+
+
+    document.querySelectorAll('button[name="paymentOption"]').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const paymentOption = this.value;
+            const form = this.closest('form');
+            const formData = new FormData(form);
+
+            // Append the selected payment option
+            formData.append('paymentOption', paymentOption);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.redirectUrl) {
+                            window.location.href = data.redirectUrl;
+                        }
+                    } else {
+                        // Show the error message dynamically
+                        const paymentErrorDiv = document.getElementById('paymentError');
+                        paymentErrorDiv.textContent = data.message;
+                        paymentErrorDiv.classList.remove('d-none');  // Ensure it's visible
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const paymentErrorDiv = document.getElementById('paymentError');
+                    paymentErrorDiv.textContent = "An unexpected error occurred.";
+                    paymentErrorDiv.classList.remove('d-none');  // Ensure it's visible
+                });
+        });
+    });
+
+
 </script>

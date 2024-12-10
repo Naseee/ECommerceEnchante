@@ -18,6 +18,7 @@ using ECommerceApp.Data;
 using ECommerceApp.Settings;
 using ECommerceApp.Services.IServices;
 using ECommerceApp.Services;
+using Newtonsoft.Json;
 
 namespace ECommerceApp.Areas.Customer.Controllers
 {
@@ -113,29 +114,26 @@ namespace ECommerceApp.Areas.Customer.Controllers
         public IActionResult OrderSummary()
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            cartVM = new CartVM()
-            {
-                cartList = _unitOfWork.Cart.GetAll(u => u.UserId == userId, includeProperties: "Product,Product.Category.CategoryOffers.Offer,Product.ProductOffers.Offer"),
-                orderHeader = new OrderHeader(),
-                Address = _unitOfWork.Address.GetAll(u => u.UserId == userId&u.IsActive!=false)
-		    };
-
             
-            cartVM.orderHeader.AUser = _userManager.FindByIdAsync(userId).Result;
-            cartVM.orderHeader.Name = cartVM.orderHeader.AUser.Name;
-            
-            
+                cartVM = new CartVM()
+                {
+                    cartList = _unitOfWork.Cart.GetAll(u => u.UserId == userId, includeProperties: "Product,Product.Category.CategoryOffers.Offer,Product.ProductOffers.Offer"),
+                    orderHeader = new OrderHeader(),
+                    Address = _unitOfWork.Address.GetAll(u => u.UserId == userId & u.IsActive != false)
+                };
+                cartVM.orderHeader.AUser = _userManager.FindByIdAsync(userId).Result;
+                cartVM.orderHeader.Name = cartVM.orderHeader.AUser.Name;
+                foreach (var cart in cartVM.cartList)
+                {
+                    var result = _discountService.GetDiscountedPriceAndOffer(cart.Product);
+                    cart.Price = result.DiscountedPrice;
+                    cartVM.orderHeader.OrderTotal += cart.Quantity * cart.Product.Price;
+                    cartVM.orderHeader.DiscountedTotal += cart.Quantity * cart.Price;
 
-            foreach (var cart in cartVM.cartList)
-            {
-                var result = _discountService.GetDiscountedPriceAndOffer(cart.Product);
-                cart.Price = result.DiscountedPrice;
-                cartVM.orderHeader.OrderTotal += cart.Quantity * cart.Product.Price;
-                cartVM.orderHeader.DiscountedTotal += cart.Quantity * cart.Price;
-                
-            }
-
+                }
+            
+            ViewBag.FreeShippingAmount = StaticDetails.FreeShippingAmount;
+            ViewBag.ShippingCharge = StaticDetails.ShippingCharge;
             var coupon = _unitOfWork.Coupon
               .GetAll(u => u.IsActive!=false && u.EndDate > DateTime.UtcNow&& u.StartDate<DateTime.UtcNow)
                 .OrderByDescending(c => c.DiscountPercentage)
@@ -183,9 +181,9 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 cartVM.orderHeader.CouponDiscount = cartVM.orderHeader.OrderTotal - cartVM.orderHeader.DiscountedTotal;
             }
 
-            if (cartVM.orderHeader.OrderTotal < 100)
+            if (cartVM.orderHeader.OrderTotal < StaticDetails.FreeShippingAmount)
             {
-                cartVM.orderHeader.ShippingCharge = 10;
+                cartVM.orderHeader.ShippingCharge = StaticDetails.ShippingCharge;
                 cartVM.orderHeader.OrderTotal = cartVM.orderHeader.OrderTotal+ (double)cartVM.orderHeader.ShippingCharge;
                 cartVM.orderHeader.DiscountedTotal = cartVM.orderHeader.DiscountedTotal + (double)cartVM.orderHeader.ShippingCharge;
             }
@@ -216,14 +214,14 @@ namespace ECommerceApp.Areas.Customer.Controllers
 
             if (paymentResult is ContentResult contentResult)
             {
-                ViewBag.message = contentResult.Content;
-                return View(cartVM);
+                return Json(new { success = false, message = contentResult.Content });
             }
             if (paymentResult is RedirectResult redirectResult)
             {
-                return redirectResult; 
+
+                return Json(new { success = true, redirectUrl = redirectResult.Url });
             }
-            return RedirectToAction("OrderConfirmation", "Cart", new { area = "Customer", id = cartVM.orderHeader.Id });
+            return Json(new { success = true, redirectUrl = Url.Action("OrderConfirmation", "Cart", new { area = "Customer", id = cartVM.orderHeader.Id }) });
 
         }
 

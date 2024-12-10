@@ -15,15 +15,15 @@ namespace ECommerceApp.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaypalServices _paypalServices;
-        private string domain { get; set; }
+       
         private readonly ILogger<PaymentService> _logger;
-        
-        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IOptions<AppSettings> appSettings, ILogger<PaymentService> logger)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public PaymentService(IUnitOfWork unitOfWork, PaypalServices paypalServices, IHttpContextAccessor httpContext, ILogger<PaymentService> logger)
         {
             _unitOfWork = unitOfWork;
             _paypalServices = paypalServices;
             _logger = logger;
-            // domain = appSettings.Value.Domain;
+            _httpContextAccessor = httpContext;
             
         }
 
@@ -102,8 +102,9 @@ namespace ECommerceApp.Services
         private async Task<IActionResult> ProcessPayPalPayment(OrderHeader orderHeader)
         {
 
-            string domain = "https://ecommerceapp-dbd3gba2hea5cdbj.australiaeast-01.azurewebsites.net/";
-            string successUrl = $"{domain}{_paypalServices.SuccessPath}{orderHeader.Id}";
+            var request = _httpContextAccessor.HttpContext.Request;
+            string domain = $"{request.Scheme}://{request.Host}/";
+            string successUrl = $"{domain}{_paypalServices.SuccessPath}/{orderHeader.Id}";
             string cancelUrl = domain + _paypalServices.CancelPath;
 
             try
@@ -120,17 +121,14 @@ namespace ECommerceApp.Services
             {
                 _logger.LogError($"PayPal payment failed: {ex.Message}");
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusFailed, StaticDetails.PaymentStatusFailed);
-                
                 _unitOfWork.OrderHeader.Update(orderHeader);
                 _unitOfWork.Save();
-
                 return new ContentResult { Content = "PayPal payment failed" };
             }
         }
 
         private IActionResult ProcessVisaPayment(OrderHeader orderHeader, CartVM cartVM)
         {
-           
             var options = new SessionCreateOptions
             {
                 //SuccessUrl = $"{domain}{_appSettings.Payment.VisaSuccessPath}{orderHeader.Id}",
