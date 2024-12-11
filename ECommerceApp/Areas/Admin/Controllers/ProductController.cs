@@ -72,7 +72,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
 
                         ProductImage productImage = new ProductImage
                         {
-                            ImageUrl = Path.Combine("/images", "products", "product-" + productVM.Product.Id, fileName),
+                            ImageUrl = $"/images/products/product-{productVM.Product.Id}/{fileName}",
                             ProductId = productVM.Product.Id
                         };
 
