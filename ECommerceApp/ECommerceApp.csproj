@@ -32,7 +32,6 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Views\CategoryOffer\" />
-    <Folder Include="wwwroot\images\products\" />
   </ItemGroup>
 
 </Project>
