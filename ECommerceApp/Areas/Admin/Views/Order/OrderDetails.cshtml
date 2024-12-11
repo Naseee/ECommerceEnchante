@@ -39,11 +39,11 @@
                             </div>
 
                             <!-- Action Buttons for Admin -->
-                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusApproved)
+                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusApproved || Model.OrderHeader.OrderStatus == StaticDetails.StatusPartiallyCancelled)
                             {
                                 <button asp-action="StartProcessing" type="submit" class="btn btn-danger form-control my-1">Start Processing</button>
                             }
-                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusInProcess)
+                            @if (Model.OrderHeader.OrderStatus == StaticDetails.StatusInProcess )
                             {
                                 <button asp-action="ShipOrder" type="submit" class="btn btn-danger form-control my-1">Ship Order</button>
                             }
@@ -133,7 +133,7 @@
                                 {
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">SubTotal (USD):</span>
-                                        <strong class="text-info">@((Model.OrderHeader.DiscountedTotal - Model.OrderHeader.ShippingCharge).ToString())</strong>
+                                        <strong class="text-info">@((Model.OrderHeader.DiscountedTotal - Model.OrderHeader.ShippingCharge)?.ToString("C"))</strong>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Discounts Applied (USD):</span>
@@ -141,12 +141,23 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Coupon Deduction (USD):</span>
-                                        <strong class="text-info">$ @Model.OrderHeader.CouponDiscount?.ToString("F2")</strong>
+                                        <strong class="text-info">
+                                            @(Model.OrderHeader.CouponDiscount > 0
+                                                ? $"$ {Model.OrderHeader.CouponDiscount.Value.ToString("F2")}"
+                                                : "No coupons applied")
+                                        </strong>
                                     </li>
+
+
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Shipping Charge (USD):</span>
-                                        <strong class="text-info">$ @Model.OrderHeader.ShippingCharge?.ToString("C")</strong>
+                                        <strong class="text-info">
+                                            @(Model.OrderHeader.ShippingCharge>0
+                                            ? $" {Model.OrderHeader.ShippingCharge.Value.ToString("C")}"
+                                           : "Free")
+                                        </strong>
                                     </li>
+
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Total (USD):</span>
                                         <strong class="text-info">@Model.OrderHeader.DiscountedTotal.ToString("C")</strong>
@@ -160,7 +171,9 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Shipping Charge (USD):</span>
-                                        <strong class="text-info">@((Model.OrderHeader.OrderTotal > 100) ? "$10.00" : "Free")</strong>
+                                        <strong class="text-info">
+                                            @Model.OrderHeader.ShippingCharge?.ToString("C") ?? "Free"
+                                        </strong>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Total (USD):</span>

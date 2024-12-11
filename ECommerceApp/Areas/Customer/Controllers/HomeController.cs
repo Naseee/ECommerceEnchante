@@ -368,7 +368,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
 
                 if (!isReturned)
                 {
-                    TempData["error"] = "An error occurred while canceling the order. Please try again later.";
+                    TempData["error"] = "An error occurred while returning the order. Please try again later.";
                     return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
                 }
             }

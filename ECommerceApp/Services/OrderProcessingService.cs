@@ -60,13 +60,28 @@ namespace ECommerceApp.Services
         }
         public async Task<bool> ReturnOrder(OrderHeader orderHeader, OrderDetail orderDetail, int quantity)
         {
-            var refundAmount = (decimal)(orderDetail.Price * quantity);
-            bool refundSuccess = await ProcessRefund(orderHeader, refundAmount);
-            if (!refundSuccess) return false;
+            try
+            {
+               
+                var refundAmount = (decimal)(orderDetail.Price * quantity);
 
-            UpdateWallet(orderHeader.UserId, refundAmount);
-            return true;
+                bool refundSuccess = await ProcessRefund(orderHeader, refundAmount);
+                if (!refundSuccess)
+                {
+                    _logger.LogError("Refund failed during return process.");
+                    return false;
+                }
+                UpdateWallet(orderHeader.UserId, refundAmount);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Return order process failed: {ex.Message}");
+                return false;
+            }
         }
+
         private async Task<bool> ProcessRefund(OrderHeader orderHeader, decimal refundAmount)
         {
             try
@@ -92,6 +107,7 @@ namespace ECommerceApp.Services
                         return false;
                     }
                 }
+                
                 return true;
             }
             catch (Exception ex)
