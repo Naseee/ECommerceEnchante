@@ -79,7 +79,7 @@ namespace ECommerceApp.Services
                 WalletTransaction transaction = new()
                 {
                     WalletId = wallet.WalletId,
-                    Amount = (decimal)orderHeader.OrderTotal,
+                    Amount = (decimal)orderHeader.DiscountedTotal < (decimal)orderHeader.OrderTotal ? (decimal)orderHeader.DiscountedTotal : (decimal)orderHeader.OrderTotal,
                     TransactionDate = DateTime.Now,
                     Description = "Order Payment",
                 };
@@ -110,7 +110,11 @@ namespace ECommerceApp.Services
 
             try
             {
-                string approvalUrl = await _paypalServices.CreateOrder((decimal)orderHeader.OrderTotal, "USD", successUrl, cancelUrl);
+                decimal amountToPass = orderHeader.DiscountedTotal < orderHeader.OrderTotal ? (decimal)orderHeader.DiscountedTotal  : (decimal)orderHeader.OrderTotal;
+
+                string approvalUrl = await _paypalServices.CreateOrder(amountToPass, "USD", successUrl, cancelUrl);
+
+                
                 orderHeader.PayPalOrderId = approvalUrl.Split("token=").Last();  
                 orderHeader.paymentMethod = PaymentMethods.paypal;
                 _unitOfWork.OrderHeader.Update(orderHeader);

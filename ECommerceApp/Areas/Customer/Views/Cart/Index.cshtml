@@ -74,7 +74,9 @@
                         <ul class="list-group mb-4">
                             <li class="d-flex justify-content-between align-items-center">
                                 
-                                <h4 class="text-dark fw-bolder">Total:@Model.orderHeader.OrderTotal.ToString("C")</h4>
+                                <h4 class="text-dark fw-bolder">Total:@(Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal ?
+                                            Model.orderHeader.DiscountedTotal.ToString("C") :
+                                            Model.orderHeader.OrderTotal.ToString("C"))</h4>
                             </li>
                         </ul>
                     </div>

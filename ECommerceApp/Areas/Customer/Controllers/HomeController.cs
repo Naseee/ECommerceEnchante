@@ -46,7 +46,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
 
         public IActionResult Index(string searchtext, int? categoryId, decimal? minPrice, decimal? maxPrice, string sortBy)
         {
-            var products = _unitOfWork.Product.GetAll(u => !u.IsDeleted, includeProperties: "Category,ProductImages,ProductOffers,Category.CategoryOffers");
+            var products = _unitOfWork.Product.GetAll(u => u.IsDeleted!=false, includeProperties: "Category,ProductImages,ProductOffers,Category.CategoryOffers");
 
             HomeVM homeVM = new HomeVM
             {

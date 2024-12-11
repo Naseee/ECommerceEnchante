@@ -141,11 +141,11 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Coupon Deduction (USD):</span>
-                                        <strong class="text-info">$ @Model.OrderHeader.CouponDiscount.ToString()</strong>
+                                        <strong class="text-info">$ @Model.OrderHeader.CouponDiscount?.ToString("F2")</strong>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Shipping Charge (USD):</span>
-                                        <strong class="text-info">$ @Model.OrderHeader.ShippingCharge.ToString()</strong>
+                                        <strong class="text-info">$ @Model.OrderHeader.ShippingCharge?.ToString("C")</strong>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between bg-light">
                                         <span class="text-info">Total (USD):</span>
