@@ -65,8 +65,6 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 cartVM.orderHeader.DiscountedTotal += cart.Quantity * cart.Price;
 
             }
-            
-
             return View(cartVM);
         }
         public IActionResult Increment(int Id)
@@ -142,18 +140,23 @@ namespace ECommerceApp.Areas.Customer.Controllers
         }
         [HttpPost]
         [ActionName("OrderSummary")]
-        public async Task<IActionResult> OrderSummaryPostAsync(int SelectedAddressId,string paymentOption,string? CouponCode)
+        public async Task<IActionResult> OrderSummaryPostAsync(int SelectedAddressId, string paymentOption, string? CouponCode)
         {
-           
+           try
+           {
+                if (SelectedAddressId <= 0)
+                {
+                    return Json(new { success = false, message = "Address not selected." });
+                }
                 string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-         
+
 
             cartVM.cartList = _unitOfWork.Cart.GetAll(u => u.UserId == userId, includeProperties: "Product,Product.Category.CategoryOffers.Offer,Product.ProductOffers.Offer");
-                cartVM.orderHeader.OrderDate = DateTime.Now;
-                cartVM.orderHeader.UserId = userId;
-                
-                var user = _userManager.FindByIdAsync(userId).Result;
-                cartVM.orderHeader.AUser = user;
+            cartVM.orderHeader.OrderDate = DateTime.Now;
+            cartVM.orderHeader.UserId = userId;
+
+            var user = _userManager.FindByIdAsync(userId).Result;
+            cartVM.orderHeader.AUser = user;
 
             foreach (var cart in cartVM.cartList)
             {
@@ -161,50 +164,54 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 cart.Price = result.DiscountedPrice;
 
                 cartVM.orderHeader.OrderTotal += cart.Quantity * cart.Product.Price;
-                
+
                 cartVM.orderHeader.DiscountedTotal += cart.Quantity * cart.Price;
 
             }
             if (!string.IsNullOrEmpty(CouponCode))
             {
-                if(cartVM.orderHeader.DiscountedTotal>0)
+                if (cartVM.orderHeader.DiscountedTotal > 0)
                 {
-                    cartVM.orderHeader.DiscountedTotal = _discountService.ApplyCouponDiscount(cartVM.orderHeader.DiscountedTotal, CouponCode);
-                }
+                        var (discountedTotal, discountAmount) = _discountService.ApplyCouponDiscount(cartVM.orderHeader.DiscountedTotal, CouponCode);
+                        cartVM.orderHeader.DiscountedTotal = discountedTotal;
+                        cartVM.orderHeader.CouponDiscount = discountAmount;
+                    }
                 else
                 {
-                    cartVM.orderHeader.DiscountedTotal = _discountService.ApplyCouponDiscount(cartVM.orderHeader.OrderTotal, CouponCode);
-                }
-                cartVM.orderHeader.CouponDiscount = cartVM.orderHeader.OrderTotal - cartVM.orderHeader.DiscountedTotal;
+                        var (discountedTotal, discountAmount) = _discountService.ApplyCouponDiscount(cartVM.orderHeader.OrderTotal, CouponCode);
+                        cartVM.orderHeader.DiscountedTotal = discountedTotal;
+                        cartVM.orderHeader.CouponDiscount = discountAmount;
+                    }
+                
             }
 
             if (cartVM.orderHeader.OrderTotal < StaticDetails.FreeShippingAmount)
             {
                 cartVM.orderHeader.ShippingCharge = StaticDetails.ShippingCharge;
-                cartVM.orderHeader.OrderTotal = cartVM.orderHeader.OrderTotal+ (double)cartVM.orderHeader.ShippingCharge;
+                cartVM.orderHeader.OrderTotal = cartVM.orderHeader.OrderTotal + (double)cartVM.orderHeader.ShippingCharge;
                 cartVM.orderHeader.DiscountedTotal = cartVM.orderHeader.DiscountedTotal + (double)cartVM.orderHeader.ShippingCharge;
             }
             cartVM.orderHeader.PaymentStatus = StaticDetails.PaymentStatusPending;
-                cartVM.orderHeader.OrderStatus = StaticDetails.StatusPending;
-                cartVM.orderHeader.AddressId = SelectedAddressId;
-                
-                var selectedaddress = _unitOfWork.Address.Get(u => u.AddressId == SelectedAddressId && u.UserId == userId,includeProperties:"User");
+            cartVM.orderHeader.OrderStatus = StaticDetails.StatusPending;
+            cartVM.orderHeader.AddressId = SelectedAddressId;
+
+            var selectedaddress = _unitOfWork.Address.Get(u => u.AddressId == SelectedAddressId && u.UserId == userId, includeProperties: "User");
 
             cartVM.orderHeader.Address = selectedaddress;
             _unitOfWork.OrderHeader.Add(cartVM.orderHeader);
-                _unitOfWork.Save();
+            _unitOfWork.Save();
 
-                foreach (var cart in cartVM.cartList)
+            foreach (var cart in cartVM.cartList)
+            {
+                OrderDetail orderDetail = new()
                 {
-                    OrderDetail orderDetail = new()
-                    {
-                        ProductId = cart.ProductId,
-                        OrderHeaderId = cartVM.orderHeader.Id,
-                        Price = cart.Price,
-                        Quantity = cart.Quantity
-                    };
-                    _unitOfWork.OrderDetail.Add(orderDetail);
-                }
+                    ProductId = cart.ProductId,
+                    OrderHeaderId = cartVM.orderHeader.Id,
+                    Price = cart.Price,
+                    Quantity = cart.Quantity
+                };
+                _unitOfWork.OrderDetail.Add(orderDetail);
+            }
             _unitOfWork.Save();
 
             var paymentResult = await _paymentService.ProcessPaymentAsync(cartVM.orderHeader, paymentOption, userId, cartVM);
@@ -219,7 +226,11 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 return Json(new { success = true, redirectUrl = redirectResult.Url });
             }
             return Json(new { success = true, redirectUrl = Url.Action("OrderConfirmation", "Cart", new { area = "Customer", id = cartVM.orderHeader.Id }) });
-
+          } 
+            catch (Exception ex)
+             {
+                return Json(new { success = false, message = "An error occurred while processing the order. Please try again later." });
+             }
         }
 
         public async Task<IActionResult> OrderConfirmation(int id)
@@ -284,7 +295,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
         public async Task<IActionResult> GenerateInvoice(int id)
         {
             
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "OrderDetails,OrderDetails.Product");
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "OrderDetails,OrderDetails.Product,Address,AUser");
 
             
             var htmlContent = await RenderViewToStringAsync("Invoice", orderHeader);
@@ -297,7 +308,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
             
         }
 
-        // Helper method to render the view to string
+        
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {
             ViewData.Model = model;

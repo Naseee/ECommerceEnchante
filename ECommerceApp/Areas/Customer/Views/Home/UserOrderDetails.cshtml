@@ -55,8 +55,7 @@
                         <div class="col-12">
                             
                             <div class="row my-3">
-                                
-
+                             
                                 @foreach (var item in Model.OrderDetail)
                                 {
                                     <div class="row border-bottom pb-3 mb-3">
@@ -78,7 +77,11 @@
                                             <p><strong>Total:</strong> @((item.Price * item.Quantity).ToString("C"))</p>
                                         </div>
                                          <div class="col-lg-4 text-center">
-                                        @if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled
+                                             @if (!item.IsActive)
+                                            {
+                                                <span class="badge bg-danger text-white py-2 px-3"></span>
+                                              }
+                                        else if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled
                                        && Model.OrderHeader.OrderStatus != StaticDetails.StatusShipped&&
                                        Model.OrderHeader.OrderStatus!=StaticDetails.StatusDelivered
                                        && Model.OrderHeader.OrderStatus != StaticDetails.StatusRefunded
@@ -87,11 +90,15 @@
                                             <form asp-action="CancelOrder" method="post">
                                                 <input type="hidden" name="OrderVM.OrderHeader.Id" value="@Model.OrderHeader.Id" />
                                                 <input type="hidden" name="OrderVM.ProductId" value="@item.ProductId" />
-                                                <input type="hidden" name="OrderVM.Quantity" value="@item.Quantity" />
+                                                <div class="mb-2">
+                <label for="quantityToCancel" class="form-label">Quantity to Cancel</label>
+                <input type="number" name="OrderVM.Quantity" id="quantityToCancel" class="form-control" min="1" max="@item.Quantity" value="1" required />
+            </div>
                                                 <button type="submit" class="btn btn-danger form-control my-1">Cancel</button>
                                             </form>
                                         }
-                                        @if(Model.OrderHeader.OrderStatus==StaticDetails.StatusDelivered||
+                                        
+                                        else if(Model.OrderHeader.OrderStatus==StaticDetails.StatusDelivered||
                                         Model.OrderHeader.OrderStatus==StaticDetails.StatusPartiallyReturned&&
                                          Model.OrderHeader.DeliveryDate < DateTime.Today.AddDays(7))
                                         {
@@ -99,7 +106,10 @@
                                             <form asp-action="ReturnOrder" method="post">
                                                 <input type="hidden" name="OrderVM.OrderHeader.Id" value="@Model.OrderHeader.Id" />
                                                 <input type="hidden" name="OrderVM.ProductId" value="@item.ProductId" />
-                                                <input type="hidden" name="OrderVM.Quantity" value="@item.Quantity" />
+                                                <div class="mb-2">
+                <label for="quantityToReturn" class="form-label">Quantity to Return</label>
+                <input type="number" name="OrderVM.Quantity" id="quantityToReturn" class="form-control" min="1" max="@item.Quantity" value="1" required />
+            </div>
                                                 <button type="submit" class="btn btn-danger form-control my-1">Return</button>
                                             </form>
                                         }
@@ -108,8 +118,6 @@
                                 }
                             </div>
                         </div>
-
-                        <!-- Shipping Details Section -->
                        <!-- Shipping Address and Order Summary on the Same Row -->
          <div class="row mt-5">
     <!-- Shipping Details Section -->
@@ -142,7 +150,6 @@
             }
         </div>
     
-
     <!-- Order Summary Section -->
     <div class="col-12 col-lg-6">
         <h4 class="text-info">Order Summary</h4>

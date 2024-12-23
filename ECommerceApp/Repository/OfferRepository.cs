@@ -20,6 +20,10 @@ namespace ECommerceApp.Repository
         {
             _db.Offers.Update(Offer);
         }
-       
+        public bool OfferExists(string offerName)
+        {
+            return _db.Offers.Any(c => c.OfferName == offerName);
+        }
+
     }
 }

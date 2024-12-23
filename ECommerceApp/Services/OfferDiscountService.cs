@@ -13,15 +13,17 @@ namespace ECommerceApp.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public double ApplyCouponDiscount(double orderTotal, string couponCode)
+        public (double DiscountedTotal, double DiscountAmount) ApplyCouponDiscount(double orderTotal, string couponCode)
         {
             var coupon = _unitOfWork.Coupon.Get(u =>
                 u.Code == couponCode && u.IsActive!=false && u.EndDate > DateTime.UtcNow && u.StartDate <= DateTime.UtcNow);
 
-            if (coupon == null) return orderTotal;
+            if (coupon == null) return (orderTotal,0);
 
             var discountAmount = orderTotal * (double)(coupon.DiscountPercentage / 100);
-            return orderTotal - discountAmount;
+            
+            var discountedTotal = orderTotal - discountAmount;
+            return (discountedTotal, discountAmount);
         }
 
         

@@ -15,6 +15,7 @@ using ECommerceApp.Areas.Customer.Controllers;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using ECommerceApp.Settings;
 using ECommerceApp.Services.IServices;
+using ECommerceApp.Models.ViewModels;
 
 namespace ECommerceApp.Areas.Admin.Controllers
 {
@@ -145,19 +146,17 @@ namespace ECommerceApp.Areas.Admin.Controllers
         public async Task<IActionResult> Cancelorder(OrderVM orderVM)
         {
             var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "Address");
-            var orderDetail = _unitOfWork.OrderDetail.Get(
-                u => u.OrderHeaderId == orderHeader.Id && u.ProductId == orderVM.ProductId
-            );
+            var orderDetails = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id).ToList();
 
-            if (orderDetail == null)
+            if (orderDetails == null || !orderDetails.Any())
             {
-                TempData["error"] = "Product not found in this order.";
+                TempData["error"] = "No products found in this order.";
                 return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
             }
             if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
             {
                 
-                bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail, orderVM.Quantity);
+                bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail,orderVM.Quantity);
 
                 if (!isCancelled)
                 {

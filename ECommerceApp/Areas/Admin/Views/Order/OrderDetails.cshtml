@@ -12,7 +12,7 @@
                         <h5 class="pt-2">Order Summary</h5>
                     </div>
                     <div class="col-6 text-end">
-                        <a asp-action="UserOrderHistory" class="btn btn-outline-light btn-sm">Back to Orders</a>
+                        <a asp-action="Index" class="btn btn-outline-light btn-sm">Back to Orders</a>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,8 @@
                                         @if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled &&
                                        Model.OrderHeader.OrderStatus != StaticDetails.StatusShipped &&
                                        Model.OrderHeader.OrderStatus != StaticDetails.StatusDelivered &&
-                                       Model.OrderHeader.OrderStatus != StaticDetails.StatusRefunded)
+                                       Model.OrderHeader.OrderStatus != StaticDetails.StatusReturned&&
+                                        Model.OrderHeader.OrderStatus!=StaticDetails.StatusPartiallyReturned&&item.IsActive)
                                         {
                                             <button asp-action="CancelOrder" type="submit" class="btn btn-danger form-control my-1">Cancel</button>
                                         }
@@ -98,20 +99,24 @@
                                     <div class="card shadow-sm">
                                         <div class="card-body">
                                             <div class="form-group">
+                                                <label for="Street">Name</label>
+                                                <input asp-for="OrderHeader.Name" type="text" class="form-control" readonly  />
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="Street">Street</label>
-                                                <input asp-for="OrderHeader.Address.Street" type="text" class="form-control" value="@shippingAddress.Street" readonly />
+                                                <input asp-for="OrderHeader.Address.Street" type="text" class="form-control" value="@shippingAddress.Street"  />
                                             </div>
                                             <div class="form-group">
                                                 <label for="City">City</label>
-                                                <input asp-for="OrderHeader.Address.City" type="text" class="form-control" value="@shippingAddress.City" readonly />
+                                                <input asp-for="OrderHeader.Address.City" type="text" class="form-control" value="@shippingAddress.City" />
                                             </div>
                                             <div class="form-group">
                                                 <label for="State">State</label>
-                                                <input asp-for="OrderHeader.Address.State" type="text" class="form-control" value="@shippingAddress.State" readonly />
+                                                <input asp-for="OrderHeader.Address.State" type="text" class="form-control" value="@shippingAddress.State" />
                                             </div>
                                             <div class="form-group">
                                                 <label for="PostalCode">Postal Code</label>
-                                                <input asp-for="OrderHeader.Address.PostalCode" type="text" class="form-control" value="@shippingAddress.PostalCode" readonly />
+                                                <input asp-for="OrderHeader.Address.PostalCode" type="text" class="form-control" value="@shippingAddress.PostalCode"  />
                                             </div>
                                         </div>
                                     </div>

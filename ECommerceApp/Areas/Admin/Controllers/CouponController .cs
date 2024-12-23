@@ -20,7 +20,7 @@ namespace ECommerceApp.Areas.Admin.Controllers
         }
         public IActionResult Index()
         {
-            var coupons = _unitOfWork.Coupon.GetAll(null, null);
+            var coupons = _unitOfWork.Coupon.GetAll(u=>u.IsActive!=false&&u.StartDate<=DateTime.UtcNow&&u.EndDate>DateTime.UtcNow);
            
            // var availableCoupons = _unitOfWork.Coupon.GetAll(u => u.IsActive != false, null);
             return View(coupons);

@@ -15,6 +15,7 @@ namespace ECommerceApp.Models
         public DateTime ShippingDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public double OrderTotal { get; set; }
+        public double? RefundedAmount { get; set; }
         public double DiscountedTotal { get; set; }
         public double? CouponDiscount { get; set; }
         public double? ShippingCharge { get; set; }

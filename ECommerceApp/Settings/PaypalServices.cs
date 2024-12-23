@@ -141,13 +141,13 @@ namespace ECommerceApp.Settings
             try
             {
                 var client = GetPayPalClient();
-                var request = new OrdersGetRequest(orderId);  // Get the order details using the Order ID
+                var request = new OrdersGetRequest(orderId);  
                 var response = await client.Execute(request);
 
-                // Extract Transaction ID from the captured order response
+            
                 var capturedOrder = response.Result<PayPalCheckoutSdk.Orders.Order>();
                 var transactionId = capturedOrder.PurchaseUnits.FirstOrDefault()?
-                    .Payments?.Captures?.FirstOrDefault()?.Id;  // Extract the transaction ID
+                    .Payments?.Captures?.FirstOrDefault()?.Id;  
 
                 return transactionId ?? throw new Exception("Transaction ID not found.");
             }

@@ -1,58 +1,82 @@
 ﻿@model ECommerceApp.Models.ViewModels.OfferVM
 
+<div class="container mt-5">
+    <form method="post" asp-action="Edit" class="shadow p-4 rounded bg-light">
+        <input type="hidden" asp-for="offer.OfferId" />
 
-<form method="post">
-    <div>
-        <h2>Edit Offer</h2>
-    </div>
-
-    <div>
-        <label asp-for="offer.OfferName"></label>
-        <input asp-for="offer.OfferName" class="form-control" />
-        <span asp-validation-for="offer.OfferName"></span>
-    </div>
-    <div class="form-group">
-        <label for="CategoryIds">Select Categories</label>
-        <select id="CategoryIds" name="CategoryIds" class="form-control" multiple>
-            <option value="">Select categories</option>
-            @foreach (var category in Model.Categories)
-            {
-                <option value="@category.Id">@category.Name</option>
-            }
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="ProductIds">Select Products</label>
-        <select id="ProductIds" name="ProductIds" class="form-control" multiple>
-            <option value="">Select products</option>
-            @foreach (var product in Model.Products)
-            {
-                <option value="@product.Id">@product.Name</option>
-            }
-        </select>
-    </div>
-    <div>
-        <label asp-for="offer.DiscountPercentage"></label>
-        <input asp-for="offer.DiscountPercentage" class="form-control" />
-        <span asp-validation-for="offer.DiscountPercentage"></span>
-    </div>
-    <div>
-        <label asp-for="offer.StartDate"></label>
-        <input asp-for="offer.StartDate" class="form-control" />
-        <span asp-validation-for="offer.StartDate"></span>
-    </div>
-    <div>
-        <label asp-for="offer.EndDate"></label>
-        <input asp-for="offer.EndDate" class="form-control" />
-        <span asp-validation-for="offer.EndDate"></span>
-    </div>
-
-    <div class="row">
-        <div class="col-6">
-            <button type="submit" class="btn btn-primary form-control">Update</button>
+        <!-- Page Header -->
+        <div class="mb-4 text-center">
+            <h2 class="text-primary">Edit Offer</h2>
         </div>
-        <div class="col-6">
-            <a asp-controller="Offer" asp-action="Index" class="btn btn-dark">Back To List</a>
+
+        <!-- Offer Name -->
+        <div class="form-group mb-3">
+            <label asp-for="offer.OfferName" class="form-label fw-bold"></label>
+            <input asp-for="offer.OfferName" class="form-control" placeholder="Enter offer name" />
+            <span asp-validation-for="offer.OfferName" class="text-danger"></span>
         </div>
-    </div>
-</form>
+
+        <!-- Categories -->
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold">Select Categories</label>
+            <div class="border rounded p-3">
+                @foreach (var category in Model.Categories)
+                {
+                    <div class="form-check">
+                        <input type="checkbox" name="CategoryIds" value="@category.Id" class="form-check-input" id="category-@category.Id"
+                        @(Model.offer.CategoryOffers?.Any(c => c.CategoryId == category.Id) == true ? "checked" : "") />
+                        <label class="form-check-label" for="category-@category.Id">@category.Name</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="CategoryIds" class="text-danger" id="categoryError"></span>
+        </div>
+
+        <!-- Products -->
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold">Select Products</label>
+            <div class="border rounded p-3">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="form-check">
+                        <input type="checkbox" name="ProductIds" value="@product.Id" class="form-check-input" id="product-@product.Id"
+                        @(Model.offer.ProductOffers?.Any(p => p.ProductId == product.Id) == true ? "checked" : "") />
+                        <label class="form-check-label" for="product-@product.Id">@product.Name</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="ProductIds" class="text-danger" id="productError"></span>
+        </div>
+
+        <!-- Discount Percentage -->
+        <div class="form-group mb-3">
+            <label asp-for="offer.DiscountPercentage" class="form-label fw-bold"></label>
+            <input asp-for="offer.DiscountPercentage" class="form-control" placeholder="Enter discount percentage" />
+            <span asp-validation-for="offer.DiscountPercentage" class="text-danger"></span>
+        </div>
+
+        <!-- Start Date -->
+        <div class="form-group mb-3">
+            <label asp-for="offer.StartDate" class="form-label fw-bold"></label>
+            <input asp-for="offer.StartDate" class="form-control" placeholder="Select start date" />
+            <span asp-validation-for="offer.StartDate" class="text-danger"></span>
+        </div>
+
+        <!-- End Date -->
+        <div class="form-group mb-3">
+            <label asp-for="offer.EndDate" class="form-label fw-bold"></label>
+            <input asp-for="offer.EndDate" class="form-control" placeholder="Select end date" />
+            <span asp-validation-for="offer.EndDate" class="text-danger"></span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="row mt-4">
+            <div class="col-md-6 mb-2">
+                <button type="submit" class="btn btn-primary w-100">Update</button>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Offer" asp-action="Index" class="btn btn-secondary w-100">Back To List</a>
+            </div>
+        </div>
+    </form>
+</div>

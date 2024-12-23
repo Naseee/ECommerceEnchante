@@ -9,64 +9,173 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
         }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .invoice-title {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+            .invoice-title::after {
+                content: '';
+                display: block;
+                width: 120px;
+                height: 4px;
+                background: linear-gradient(to right, #007bff, #28a745);
+                margin: 10px auto 0;
+                border-radius: 2px;
+            }
 
         .invoice-header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 3px solid #007bff;
         }
 
-            .invoice-header h2 {
-                margin: 0;
+            .invoice-header .details {
+                color: #007bff;
             }
+
+                .invoice-header .details p {
+                    margin: 5px 0;
+                    font-size: 1em;
+                }
 
         .invoice-details {
             margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+            text-align: left;
         }
 
-            .invoice-details th, .invoice-details td {
-                padding: 5px;
+            .invoice-details th {
+                background: #007bff;
+                color: #fff;
+                text-align: left;
+                padding: 10px;
                 border: 1px solid #ccc;
             }
 
+            .invoice-details td {
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .invoice-details tbody tr:nth-child(even) {
+                background-color: #f4f4f4;
+            }
+
         .invoice-footer {
-            margin-top: 20px;
-            text-align: center;
+            margin-top: 30px;
+            text-align: right;
+        }
+
+            .invoice-footer p {
+                margin: 5px 0;
+                font-size: 1.1em;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .subtotal {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        .highlight {
+            color: #28a745;
+        }
+
+        .discount {
+            color: #dc3545;
         }
     </style>
 </head>
 <body>
-    <div class="invoice-header">
-        <h2>Invoice</h2>
-        <p>Order ID: @Model.Id</p>
-        <p>Date: @Model.OrderDate.ToString("MM/dd/yyyy")</p>
-    </div>
+    <div class="container">
+        <h1 class="invoice-title">Invoice</h1>
+        <div class="invoice-header">
+           
+            <!-- Left Section: Order Details -->
+            <div class="details">
+                <p><strong>Order ID:</strong> <span>@Model.Id</span></p>
+                <p><strong>Order Date:</strong> @Model.OrderDate.ToString("MM/dd/yyyy")</p>
+                <p><strong>PaymentMethod:</strong> <span>@Model.paymentMethod</span></p>
+                
+            </div>
+            <!-- Right Section: Customer Details -->
+            <div class="details">
+                <p><strong>Customer Name:</strong> <span>@Model.Name</span></p>
+                <p>
+                    <strong>Address:</strong> <br>
+                    @Model.Address.Street,<br>
+                    @Model.Address.City, @Model.Address.State,<br>
+                    @Model.Address.PostalCode
+                </p>
+            </div>
+        </div>
 
-    <div class="invoice-details">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.OrderDetails)
-                {
+        <!-- Table Section -->
+        <div class="invoice-details">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
                     <tr>
-                        <td>@item.Product.Name</td>
-                        <td>@item.Quantity</td>
-                        <td>@item.Product.Price.ToString("C")</td>
-                        <td>@(item.Product.Price * item.Quantity).ToString("C")</td>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+                            <td>@item.Product.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Product.Price.ToString("C")</td>
+                            <td>@(item.Product.Price * item.Quantity).ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <div class="invoice-footer">
-        <h4>Total: @Model.OrderTotal.ToString("C")</h4>
+        <!-- Footer Section -->
+        <div class="invoice-footer">
+            @if (Model.DiscountedTotal < Model.OrderTotal)
+            {
+                <p class="subtotal">Subtotal : @Model.OrderTotal.ToString("C")</p>
+                <p class="discount">Discount : @((Model.OrderTotal - Model.DiscountedTotal).ToString("C"))</p>
+                <p class="total">Total : @Model.DiscountedTotal.ToString("C")</p>
+            }
+            else
+            {
+                <p class="total">Total : @Model.OrderTotal.ToString("C")</p>
+            }
+        </div>
     </div>
 </body>
 </html>

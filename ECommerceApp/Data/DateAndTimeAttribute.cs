@@ -21,27 +21,30 @@ namespace ECommerceApp.Data
                 return new ValidationResult("Start date property not found.");
             }
 
-            var startDate = (DateTime)property.GetValue(validationContext.ObjectInstance);
-            var endDate = (DateTime)value;
+            var startDate = (DateTime?)property.GetValue(validationContext.ObjectInstance) ?? DateTime.Today;
+            var endDate = value as DateTime?;
 
-            // Check if both dates are in the future
-            if (startDate < DateTime.Now)
+            // Validate StartDate
+            if (startDate.Date < DateTime.Today)
             {
-                return new ValidationResult("Start Date must be a future date.");
+                return new ValidationResult("Start Date must be today or a future date.");
             }
 
-            if (endDate < DateTime.Now)
+            // Validate EndDate
+            if (endDate.HasValue)
             {
-                return new ValidationResult("End Date must be a future date.");
+                if (endDate.Value.Date <= startDate.Date)
+                {
+                    return new ValidationResult("End Date must be after Start Date.");
+                }
             }
-
-            // Check if the end date is after the start date
-            if (endDate <= startDate)
+            else
             {
-                return new ValidationResult("End Date must be after Start Date and time.");
+                return new ValidationResult("End Date is required.");
             }
 
             return ValidationResult.Success;
         }
+
     }
 }

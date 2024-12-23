@@ -7,54 +7,62 @@
     </div>
 }
 <div class="container mt-5">
-    <form asp-action="Create" method="post" enctype="multipart/form-data" class="row g-3">
-        <div class="col-12">
-            <h2 class="text-center mb-4">Add New Product</h2>
+    <div class="row">
+        <div class="col-12 text-center">
+            <h2 class="mb-4">Add New Product</h2>
         </div>
-        <div class="col-md-6">
-            <label asp-for="Product.Name" class="form-label fw-bold">Product Name</label>
-            <input asp-for="Product.Name" class="form-control" placeholder="Enter product name" />
-            <span asp-validation-for="Product.Name" class="text-danger"></span>
-        </div>
-        <div class="col-md-6">
-            <label asp-for="Product.Description" class="form-label fw-bold">Description</label>
-            <input asp-for="Product.Description" class="form-control" placeholder="Enter product description" />
-            <span asp-validation-for="Product.Description" class="text-danger"></span>
-        </div>
-        <div class="col-md-4">
-            <label asp-for="Product.Price" class="form-label fw-bold">Price</label>
-            <input asp-for="Product.Price" class="form-control" type="number" placeholder="Enter price" min="0.01" step="0.01" />
-            <span asp-validation-for="Product.Price" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Product.CategoryId" class="form-label fw-bold">Category</label>
-            <select asp-for="Product.CategoryId" class="form-control">
-                <option value="">-- Select Category --</option>
-                @foreach (var category in Model.Categories)
-                {
-                    <option value="@category.Id">
-                        @category.Name
-                    </option>
-                }
-            </select>
+    </div>
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label asp-for="Product.Name" class="form-label fw-bold">Product Name</label>
+                <input asp-for="Product.Name" class="form-control" placeholder="Enter product name" />
+                <span asp-validation-for="Product.Name" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Product.Description" class="form-label fw-bold">Description</label>
+                <input asp-for="Product.Description" class="form-control" placeholder="Enter product description" />
+                <span asp-validation-for="Product.Description" class="text-danger"></span>
+            </div>
 
+            <div class="col-md-4">
+                <label asp-for="Product.Price" class="form-label fw-bold">Price</label>
+                <input asp-for="Product.Price" class="form-control" type="number" placeholder="Enter price" min="0.01" step="0.01" />
+                <span asp-validation-for="Product.Price" class="text-danger"></span>
+            </div>
 
-            <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
-        </div>
-        <div class="col-md-4">
-            <label asp-for="Product.product_Quantity" class="form-label fw-bold">Quantity</label>
-            <input asp-for="Product.product_Quantity" class="form-control" type="number" min="1" placeholder="Enter quantity" />
-            <span asp-validation-for="Product.product_Quantity" class="text-danger"></span>
-        </div>
-        <div class="col-md-12">
-            <label class="form-label fw-bold">Product Images</label>
-            <input type="file" name="files" class="form-control" multiple />
-        </div>
-        <div class="col-6 mt-4">
-            <button type="submit" class="btn btn-primary w-100">Add Product</button>
-        </div>
-        <div class="col-6 mt-4">
-            <a asp-controller="Product" asp-action="Index" class="btn btn-dark w-100">Back To List</a>
+            <div class="col-md-4">
+                <label asp-for="Product.product_Quantity" class="form-label fw-bold">Quantity</label>
+                <input asp-for="Product.product_Quantity" class="form-control" type="number" min="1" placeholder="Enter quantity" />
+                <span asp-validation-for="Product.product_Quantity" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Product.CategoryId" class="form-label fw-bold">Category</label>
+                <select asp-for="Product.CategoryId" class="form-control">
+                    <option value="">-- Select Category --</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">
+                            @category.Name
+                        </option>
+                    }
+                </select>
+                <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 mb-5">
+                <!-- Add bottom margin to give space before buttons -->
+                <label class="form-label fw-bold">Product Images</label>
+                <input type="file" name="files" class="form-control" multiple />
+            </div>
+
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-primary w-100">Add Product</button>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Product" asp-action="Index" class="btn btn-dark w-100">Back To List</a>
+            </div>
         </div>
     </form>
 </div>

@@ -5,6 +5,7 @@ using ECommerceApp.ViewModels.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using PayPal.v1.CustomerDisputes;
 
 namespace ECommerceApp.Areas.Admin.Controllers
@@ -19,11 +20,38 @@ namespace ECommerceApp.Areas.Admin.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-        public IActionResult Index()
+        public IActionResult Index(string searchText, int page = 1)
         {
-            var offers = _unitOfWork.Offer.GetAll(null, includeProperties: "ProductOffers.Product,CategoryOffers.Category");
-            return View(offers);
+            int pageSize = 5;
+            var offers = _unitOfWork.Offer.GetAll(
+                u => u.IsActive != false,
+                includeProperties: "ProductOffers.Product,CategoryOffers.Category"
+            );
+
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                var searchTerm = searchText.Trim().ToLower();
+                offers = offers.Where(s => s.OfferName.ToLower().Contains(searchTerm)).ToList();
+            }
+
+            var totalOffers = offers.Count();
+            var totalPages = (int)Math.Ceiling(totalOffers / (double)pageSize);
+
+        
+            var pagedOffers = offers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            var viewModel = new OfferIndexVM
+            {
+                Offers = pagedOffers,
+                SearchTerm = searchText, 
+                CurrentPage = page,
+                TotalPages = totalPages
+            };
+
+            return View(viewModel);
         }
+
+
         public IActionResult Create()
         {
             var offerVM = new OfferVM
@@ -37,136 +65,179 @@ namespace ECommerceApp.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult Create(OfferVM offerVM, List<int> CategoryIds, List<int> ProductIds)
         {
-            
-
             if (ModelState.IsValid)
             {
-                var offer = new Models.Offer
+                try
                 {
-                    OfferName = offerVM.offer.OfferName,
-                    DiscountPercentage = offerVM.offer.DiscountPercentage,
-                    StartDate = offerVM.offer.StartDate,
-                    EndDate = offerVM.offer.EndDate
-                  
-                };
-
-                _unitOfWork.Offer.Add(offer);
-                _unitOfWork.Save();
-
-
-                if (CategoryIds != null && CategoryIds.Any())
-                {
-                    foreach (var categoryId in CategoryIds)
+                    var offer = new Models.Offer
                     {
-                        var categoryOffer = new CategoryOffer
-                        {
-                            CategoryId = categoryId,  
-                            OfferId = offer.OfferId   
-                        };
+                        OfferName = offerVM.offer.OfferName,
+                        DiscountPercentage = offerVM.offer.DiscountPercentage,
+                        StartDate = offerVM.offer.StartDate,
+                        EndDate = offerVM.offer.EndDate
+                    };
 
-                        
-                        _unitOfWork.CategoryOffer.Add(categoryOffer);
-                    }
-                    offer.OfferType = "Category Offer";
-                    
-                    _unitOfWork.Offer.Update(offer);
+                    _unitOfWork.Offer.Add(offer);
                     _unitOfWork.Save();
-                }
-                if (ProductIds != null && ProductIds.Any())
-                {
-                    foreach (var productId in ProductIds)
+
+                    if (CategoryIds != null && CategoryIds.Any())
                     {
-                        var productOffer = new ProductOffer
+                        foreach (var categoryId in CategoryIds)
                         {
-                            ProductId = productId,    
-                            OfferId = offer.OfferId   
-                        };
+                            var categoryOffer = new CategoryOffer
+                            {
+                                CategoryId = categoryId,
+                                OfferId = offer.OfferId
+                            };
 
-                       
-                        _unitOfWork.ProductOffer.Add(productOffer);
+                            _unitOfWork.CategoryOffer.Add(categoryOffer);
+                        }
+
+                        offer.OfferType = "Category Offer";
+                        _unitOfWork.Offer.Update(offer);
+                        _unitOfWork.Save();
                     }
-                    offer.OfferType = "Product Offer";
-                    _unitOfWork.Offer.Update(offer);
-                    _unitOfWork.Save();
-                }
-            
 
-                TempData["success"] = "offer added successfully";
-                return RedirectToAction("Index");
+                    if (ProductIds != null && ProductIds.Any())
+                    {
+                        foreach (var productId in ProductIds)
+                        {
+                            var productOffer = new ProductOffer
+                            {
+                                ProductId = productId,
+                                OfferId = offer.OfferId
+                            };
+
+                            _unitOfWork.ProductOffer.Add(productOffer);
+                        }
+
+                        offer.OfferType = "Product Offer";
+                        _unitOfWork.Offer.Update(offer);
+                        _unitOfWork.Save();
+                    }
+
+                    TempData["success"] = "Offer added successfully";
+                    return RedirectToAction("Index");
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Offers_OfferName"))
+                    {
+                        ModelState.AddModelError("offer.OfferName", "Offer Name must be unique.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "An unexpected error occurred while adding the offer.");
+                    }
+                }
             }
-            offerVM.Categories = _unitOfWork.Category.GetAll(null);
-            offerVM.Products = _unitOfWork.Product.GetAll(null);
+
+
+            offerVM.Categories = _unitOfWork.Category.GetAll(null) ?? new List<Category>();
+            offerVM.Products = _unitOfWork.Product.GetAll(null) ?? new List<Product>();
             return View(offerVM);
-           
         }
+
 
         public IActionResult Edit(int id)
         {
+            var offer = _unitOfWork.Offer.Get(u => u.OfferId == id, includeProperties: "ProductOffers.Product,CategoryOffers.Category");
+
+            if (offer == null)
+            {
+                return NotFound();
+            }
+
             var offerVM = new OfferVM
             {
-                Categories = _unitOfWork.Category.GetAll(u => u.IsDeleted != true, includeProperties: "CategoryOffers"),
+                offer = offer,
                 Products = _unitOfWork.Product.GetAll(null),
-                offer = _unitOfWork.Offer.Get(u => u.OfferId == id, includeProperties: "CategoryOffers,ProductOffers")
-        };
-            
+                Categories = _unitOfWork.Category.GetAll(null)
+            };
+
             return View(offerVM);
         }
+
 
         [HttpPost]
         public IActionResult Edit(OfferVM offerVM, List<int> CategoryIds, List<int> ProductIds)
         {
-           
+
             if (ModelState.IsValid)
             {
-                var offer = new Models.Offer
+                try
                 {
-                    OfferName = offerVM.offer.OfferName,
-                    DiscountPercentage = offerVM.offer.DiscountPercentage,
-                    StartDate = offerVM.offer.StartDate,
-                    EndDate = offerVM.offer.EndDate
-                   
-                };
-                _unitOfWork.Offer.Update(offer);
-                _unitOfWork.Save();
-                if (CategoryIds != null && CategoryIds.Any())
-                {
-                    foreach (var categoryId in CategoryIds)
+                    var existingOffer = _unitOfWork.Offer.Get(u => u.OfferId == offerVM.offer.OfferId, includeProperties: "ProductOffers,CategoryOffers");
+
+                    if (existingOffer == null)
                     {
-                        var categoryOffer = new CategoryOffer
-                        {
-                            CategoryId = categoryId,
-                            OfferId = offer.OfferId
-                        };
-
-
-                        _unitOfWork.CategoryOffer.Update(categoryOffer);
+                        return NotFound();
                     }
-                    offer.OfferType = "Category Offer";
+
                    
-                }
-                if (ProductIds != null && ProductIds.Any())
-                {
-                    foreach (var productId in ProductIds)
+                    existingOffer.OfferName = offerVM.offer.OfferName;
+                    existingOffer.DiscountPercentage = offerVM.offer.DiscountPercentage;
+                    existingOffer.StartDate = offerVM.offer.StartDate;
+                    existingOffer.EndDate = offerVM.offer.EndDate;
+
+                    
+                    _unitOfWork.CategoryOffer.RemoveRange(existingOffer.CategoryOffers);
+                    if (CategoryIds != null && CategoryIds.Any())
                     {
-                        var productOffer = new ProductOffer
+                        foreach (var categoryId in CategoryIds)
                         {
-                            ProductId = productId,
-                            OfferId = offer.OfferId
-                        };
-
-
-                        _unitOfWork.ProductOffer.Update(productOffer);
+                            var categoryOffer = new CategoryOffer
+                            {
+                                CategoryId = categoryId,
+                                OfferId = existingOffer.OfferId
+                            };
+                            _unitOfWork.CategoryOffer.Add(categoryOffer);
+                        }
+                        existingOffer.OfferType = "Category Offer";
                     }
-                    offer.OfferType = "Product Offer";
-                   
+
+                    // Update product offers
+                    _unitOfWork.ProductOffer.RemoveRange(existingOffer.ProductOffers);
+                    if (ProductIds != null && ProductIds.Any())
+                    {
+                        foreach (var productId in ProductIds)
+                        {
+                            var productOffer = new ProductOffer
+                            {
+                                ProductId = productId,
+                                OfferId = existingOffer.OfferId
+                            };
+                            _unitOfWork.ProductOffer.Add(productOffer);
+                        }
+                        existingOffer.OfferType = "Product Offer";
+                    }
+
+                    _unitOfWork.Offer.Update(existingOffer);
+                    _unitOfWork.Save();
+
+                    TempData["success"] = "Offer updated successfully";
+                    return RedirectToAction("Index");
                 }
-                _unitOfWork.Offer.Update(offer);
-                _unitOfWork.Save();
-                TempData["success"] = " offer updated successfully";
-                return RedirectToAction("Index");
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Offers_OfferName"))
+                    {
+                        ModelState.AddModelError("offer.OfferName", "Offer Name must be unique.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "An unexpected error occurred while updating the offer.");
+                    }
+                }
             }
+
+          
+            offerVM.Categories = _unitOfWork.Category.GetAll(null) ?? new List<Category>();
+            offerVM.Products = _unitOfWork.Product.GetAll(null) ?? new List<Product>();
+
             return View(offerVM);
         }
+
         public IActionResult Delete(int Id)
         {
             var offer = _unitOfWork.Offer.Get(u => u.OfferId == Id, null);

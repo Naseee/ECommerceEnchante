@@ -1,5 +1,8 @@
 ﻿@{
     var timePeriod = Context.Request.Query["timePeriod"];
+    
+    int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
+    int totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
 }
 
 <div class="container">
@@ -31,7 +34,7 @@
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title">Order # <span class="text-primary">@order.Id</span></h5>
-                        <p><strong>Date:</strong> @order.OrderDate</p>
+                        <p><strong>Date:</strong> @order.OrderDate.ToString("dd/MM/yy")</p>
                        
                         <p>
                             <strong>Status:</strong>
@@ -50,6 +53,29 @@
             </div>
         }
     </div>
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                <!-- Previous Button -->
+                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("UserOrderHistory", new { timePeriod = timePeriod, page = currentPage - 1 })">Previous</a>
+                </li>
+
+                <!-- Page Numbers -->
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("UserOrderHistory", new { timePeriod = timePeriod, page = i })">@i</a>
+                    </li>
+                }
+
+                <!-- Next Button -->
+                <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("UserOrderHistory", new { timePeriod = timePeriod, page = currentPage + 1 })">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
 
 <script>
@@ -57,10 +83,8 @@
         const selectedPeriod = selectElement.value;
         const currentUrl = new URL(window.location.href);
 
-        // Update query parameters
         currentUrl.searchParams.set('timePeriod', selectedPeriod);
 
-        // Redirect to the updated URL
         window.location.href = currentUrl.toString();
     }
 </script>

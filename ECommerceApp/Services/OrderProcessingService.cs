@@ -8,6 +8,7 @@ using ECommerceApp.Utility;
 
 using ECommerceApp.ViewModels.Models;
 using Stripe;
+using System;
 
 namespace ECommerceApp.Services
 {
@@ -30,7 +31,8 @@ namespace ECommerceApp.Services
                 if (order == null) return false;
 
                 order.OrderStatus = newStatus;
-
+                if (order.PaymentStatus != StaticDetails.PaymentStatusApproved)
+                    order.PaymentStatus = StaticDetails.PaymentStatusApproved;
                 if (newStatus == StaticDetails.StatusShipped)
                     order.ShippingDate = statusDate ?? DateTime.Now;
                 if (newStatus == StaticDetails.StatusDelivered)
@@ -52,6 +54,14 @@ namespace ECommerceApp.Services
         {
 
             var refundAmount = (decimal)(orderDetail.Price * quantity);
+            var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id&&u.IsActive==true);
+            if (remainingItems.Count() == 1 && remainingItems.First().Quantity == quantity)
+            {
+                refundAmount -= (decimal)orderHeader.CouponDiscount;
+                refundAmount += (decimal)orderHeader.ShippingCharge; 
+            }
+            
+
             bool refundSuccess = await ProcessRefund(orderHeader, refundAmount);
             if (!refundSuccess) return false;
 
@@ -62,8 +72,13 @@ namespace ECommerceApp.Services
         {
             try
             {
-               
                 var refundAmount = (decimal)(orderDetail.Price * quantity);
+                var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id&&u.IsActive==true);
+                if (remainingItems.Count() == 1 && remainingItems.First().Quantity == quantity)
+                {
+                    refundAmount -= (decimal)orderHeader.CouponDiscount;
+                    refundAmount += (decimal)orderHeader.ShippingCharge;
+                }
 
                 bool refundSuccess = await ProcessRefund(orderHeader, refundAmount);
                 if (!refundSuccess)
@@ -71,6 +86,7 @@ namespace ECommerceApp.Services
                     _logger.LogError("Refund failed during return process.");
                     return false;
                 }
+
                 UpdateWallet(orderHeader.UserId, refundAmount);
 
                 return true;
@@ -82,32 +98,48 @@ namespace ECommerceApp.Services
             }
         }
 
+
         private async Task<bool> ProcessRefund(OrderHeader orderHeader, decimal refundAmount)
         {
             try
             {
+                orderHeader.RefundedAmount = 0;
+                decimal refundableAmount = refundAmount - (decimal)(orderHeader.RefundedAmount);
+
+
+                if (refundableAmount <= 0)
+                {
+                    _logger.LogWarning("No refundable amount left.");
+                    return true;
+                }
+
                 if (orderHeader.paymentMethod == PaymentMethods.visa)
                 {
                     var options = new RefundCreateOptions
                     {
                         Reason = RefundReasons.RequestedByCustomer,
                         PaymentIntent = orderHeader.paymentIntentId,
-                        Amount = (long)(refundAmount * 100) // Stripe expects amount in cents
+                        Amount = (long)(refundableAmount * 100)
                     };
                     var service = new RefundService();
                     Refund refund = service.Create(options);
                 }
-                else if (orderHeader.paymentMethod == PaymentMethods.paypal)
+                if (orderHeader.paymentMethod == PaymentMethods.paypal)
                 {
                     var captureId = await _paypalServices.GetTransactionId(orderHeader.PayPalOrderId);
-                    var refundResponse = await _paypalServices.RefundPayment(captureId, refundAmount);
+                    var refundResponse = await _paypalServices.RefundPayment(captureId, refundableAmount);
                     if (!refundResponse.IsSuccess)
                     {
                         _logger.LogError("PayPal refund failed.");
                         return false;
                     }
                 }
+
                 
+                orderHeader.RefundedAmount += (double)refundableAmount;
+                _unitOfWork.OrderHeader.Update(orderHeader);
+                _unitOfWork.Save();
+
                 return true;
             }
             catch (Exception ex)
@@ -116,6 +148,7 @@ namespace ECommerceApp.Services
                 return false;
             }
         }
+
 
         private void UpdateWallet(string userId, decimal amount)
         {

@@ -171,44 +171,35 @@
                             function updateChart(period) {
                                 let selectedData, labelsKey;
 
-                                // Select data and labels based on period
+                              
                                 switch (period) {
                                     case 'total':
                                         selectedData = totalSalesData;
-                                        labelsKey = 'Date'; // Use dates for Total Sales
+                                        labelsKey = 'Date'; 
                                         break;
                                     case 'weekly':
                                         selectedData = weeklySalesData;
-                                        labelsKey = 'Date'; // Use dates for Weekly Sales
+                                        labelsKey = 'Date'; 
                                         break;
                                     case 'monthly':
                                         selectedData = monthlySalesData;
-                                        labelsKey = 'Week'; // Use weeks for Monthly Sales
+                                        labelsKey = 'Week'; 
                                         break;
                                     case 'annual':
                                         selectedData = annualSalesData;
-                                        labelsKey = 'Month'; // Use months for Annual Sales
+                                        labelsKey = 'Month'; 
                                         break;
                                     default:
                                         selectedData = totalSalesData;
-                                        labelsKey = 'Date'; // Fallback to dates
+                                        labelsKey = 'Date';
                                 }
-
-                                // Update chart data and labels dynamically
                                 salesChart.data.labels = selectedData.map(item => item[labelsKey]);
                                 salesChart.data.datasets[0].data = selectedData.map(item => item.TotalSales);
                                 salesChart.data.datasets[0].label = `${period.charAt(0).toUpperCase() + period.slice(1)} Sales`;
                                 salesChart.update();
                             }
                         </script>
-
-
-
-
                     </div>
-
-
-
             </div>
         </div>
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using ECommerceApp.Utility;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,5 +20,6 @@ namespace ECommerceApp.Models
         public Product Product { get; set; }
         public int Quantity { get; set; }
         public double Price { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

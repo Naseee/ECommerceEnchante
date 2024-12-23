@@ -145,7 +145,15 @@
                 "columns": [
                     { "data": "id", "autoWidth": true, "searchable": true },
                    
-                    { "data": "orderDate", "autoWidth": true, "searchable": true },
+                   { "data": "orderDate", "autoWidth": true, "searchable": true,"render": function (data) {
+                   if (data) {
+                 const date = new Date(data);
+                return date.toLocaleDateString(); 
+                      }
+                 return "";
+                 }
+                 }
+,
                     { "data": "orderStatus", "autoWidth": true, "searchable": true },
                     { "data": "paymentStatus", "autoWidth": true, "searchable": true },
                     { "data": "orderTotal", "autoWidth": true, "searchable": true },

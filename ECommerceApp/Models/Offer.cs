@@ -1,19 +1,20 @@
 ﻿using ECommerceApp.Data;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApp.Models
 {
-
+    [Index(nameof(OfferName), IsUnique = true)]
     public class Offer
     {
         [Key]
         public int OfferId { get; set; }
         [Required(ErrorMessage = "Offer Name is required.")]
         [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "Name can only contain letters and numbers.")]
-        [UniqueName(ErrorMessage = "Name should be unique.")]
+        
         public string OfferName { get; set; }
-        [Required(ErrorMessage = "Field is required.")]
+        [Required(ErrorMessage = " This Field is required.")]
         public decimal DiscountPercentage { get; set; }
         [Required(ErrorMessage = "This field is required.")]
 

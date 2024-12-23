@@ -18,6 +18,7 @@ namespace ECommerceApp.Data
             var _categoryRepository = validationContext.GetService(typeof(ICategoryRepository)) as ICategoryRepository;
             var _productRepository = validationContext.GetService(typeof(IProductRepository)) as IProductRepository;
             var _couponrepository = validationContext.GetService(typeof(ICouponRepository)) as ICouponRepository;
+            var _offerRepository = validationContext.GetService(typeof(IOfferRepository)) as IOfferRepository;
             var _applicationUserRepository = validationContext.GetService(typeof(IApplicationUserRepository)) as IApplicationUserRepository;
             if (_categoryRepository != null && _categoryRepository.CategoryExists((string)value))
             {
@@ -31,7 +32,8 @@ namespace ECommerceApp.Data
             {
                 return new ValidationResult(" Code must be unique.");
             }
-            if (_applicationUserRepository != null && _applicationUserRepository.ReferralCodeExists((string)value)) 
+           // if (_offerRepository != null && _offerRepository.OfferExists.((string)value))
+                if (_applicationUserRepository != null && _applicationUserRepository.ReferralCodeExists((string)value)) 
             {
                 return new ValidationResult(" Code must be unique.");
             }

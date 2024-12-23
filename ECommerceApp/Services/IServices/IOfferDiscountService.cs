@@ -5,6 +5,6 @@ namespace ECommerceApp.Services.IServices
     public interface IOfferDiscountService
     {
          (double DiscountedPrice, Offer? HighestOffer) GetDiscountedPriceAndOffer(Product product);
-        double ApplyCouponDiscount(double orderTotal, string couponCode);
+        (double DiscountedTotal, double DiscountAmount) ApplyCouponDiscount(double orderTotal, string couponCode);
     }
 }

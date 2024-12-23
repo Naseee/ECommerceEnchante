@@ -31,6 +31,8 @@
         public const double FreeShippingAmount = 100;
         public const double ShippingCharge = 10;
 
+       
+
     }
    
 }

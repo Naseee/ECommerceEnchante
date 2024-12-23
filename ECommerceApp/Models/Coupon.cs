@@ -20,12 +20,13 @@ namespace ECommerceApp.Models
     [Range(0, 100, ErrorMessage = "Discount Percentage must be between 0 and 100.")]
     public decimal DiscountPercentage { get; set; }
 
-   
-    [DataType(DataType.Date, ErrorMessage = "Invalid Start Date format.")]
-    public DateTime? StartDate { get; set; }
+        [Required(ErrorMessage = "Start Date is required.")]
+        [DataType(DataType.Date, ErrorMessage = "Invalid Start Date format.")]
+        
+        public DateTime? StartDate { get; set; } = DateTime.Today;
 
-   
-    [DataType(DataType.Date, ErrorMessage = "Invalid End Date format.")]
+        [Required(ErrorMessage = "End Date is required.")]
+        [DataType(DataType.Date, ErrorMessage = "Invalid End Date format.")]
         [DateAndTimeAttribute("StartDate",ErrorMessage = "End Date must be after Start Date.")]
     public DateTime? EndDate { get; set; }
 

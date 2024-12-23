@@ -61,7 +61,7 @@
     <div class="card mb-4 p-4 shadow">
         <h5>Total Orders: @ViewBag.TotalSales</h5>
         <h5>Total Sales Amount: @ViewBag.TotalSalesAmount.ToString("C")</h5>
-        <h5>Total Discount: @ViewBag.TotalDiscount.ToString()</h5>
+        <h5>Total Discount: @ViewBag.TotalDiscount.ToString("F2")</h5>
     </div>
 
     <!-- Sales Report Table -->
@@ -81,7 +81,7 @@
                 {
                     <tr>
                         <td>@order.OrderId</td>
-                        <td>@order.OrderDate.ToString()</td>
+                        <td>@order.OrderDate?.ToString("yyyy-MM-dd")</td>
                         <td>@order.CustomerName</td>
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>

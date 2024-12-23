@@ -2,9 +2,9 @@
 
 <div class="container mt-5">
     <form asp-action="Edit" method="post" enctype="multipart/form-data">
-        <div class="row d-flex justify-content-between">
+        <div class="row">
             <!-- Left Column: Form Inputs -->
-            <div class="col-md-6">
+            <div class="col-lg-7">
                 <div>
                     <h2 class="text-center mb-4">Edit Product</h2>
                 </div>
@@ -57,19 +57,23 @@
             </div>
 
             <!-- Right Column: Product Images -->
-            <div class="col-md-5 text-center">
-                <h4>Uploaded Images</h4>
+            <div class="col-lg-5">
+                <h4 class="text-center mb-4">Uploaded Images</h4>
                 @if (Model.Product.ProductImages != null)
                 {
-                    @foreach (var image in Model.Product.ProductImages)
-                    {
-                        <div class="border p-2 my-2">
-                            <img src="@image.ImageUrl" class="img-fluid" style="max-width: 80%; height: auto;" />
-                            <div class="mt-2">
-                                <a asp-action="DeleteImage" class="btn btn-danger btn-sm" asp-route-imageId="@image.Id">Delete</a>
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                        @foreach (var image in Model.Product.ProductImages)
+                        {
+                            <div class="col">
+                                <div class="card h-100 border p-2">
+                                    <img src="@image.ImageUrl" class="card-img-top img-fluid" style="max-width: 100%; height: auto; border-radius: 5px;" />
+                                    <div class="card-body text-center">
+                                        <a asp-action="DeleteImage" class="btn btn-danger btn-sm" asp-route-imageId="@image.Id">Delete</a>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 }
             </div>
         </div>

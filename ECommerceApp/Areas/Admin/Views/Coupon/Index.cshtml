@@ -17,7 +17,7 @@
                 <th>Discount Percentage</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Is Active</th>
+                
                 <th colspan="2">Actions</th>
             </tr>
         </thead>
@@ -32,7 +32,7 @@
 
                         <td>@(coupon.EndDate.HasValue ? coupon.StartDate.Value.ToString("MM/dd/yyyy") : "N/A")</td>
                          <td>@(coupon.StartDate.HasValue ? coupon.EndDate.Value.ToString("MM/dd/yyyy") : "N/A")</td>
-                        <td>@coupon.IsActive</td>
+                        
                          <td class="text-center">
                             <a asp-controller="Coupon" asp-action="Edit" asp-route-Id="@coupon.Id" class="btn btn-sm btn-primary">Edit</a>
                         </td>

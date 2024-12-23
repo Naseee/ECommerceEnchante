@@ -44,7 +44,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
             _orderProcessingService = orderProcessingService;
         }
 
-        public IActionResult Index(string searchtext, int? categoryId, decimal? minPrice, decimal? maxPrice, string sortBy)
+        public IActionResult Index()
         {
             var products = _unitOfWork.Product.GetAll(u => u.IsDeleted!=false, includeProperties: "Category,ProductImages,ProductOffers,Category.CategoryOffers");
 
@@ -231,7 +231,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
             return View(homeVM);
         }
         [HttpGet]
-        public IActionResult UserOrderHistory(string timePeriod)
+        public IActionResult UserOrderHistory(string timePeriod, int page = 1, int pageSize = 9)
         {
             IEnumerable<OrderHeader> orders;
 
@@ -258,8 +258,17 @@ namespace ECommerceApp.Areas.Customer.Controllers
                     
                     break;
             }
-
-            return View(orders);
+            
+            var totalOrders =orders.Count();
+            var pagedOrders = orders
+                .OrderByDescending(t => t.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = (int)Math.Ceiling((double)totalOrders / pageSize);
+            return View(pagedOrders);
         }
         public IActionResult UserOrderDetails(int id)
         {
@@ -300,8 +309,8 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
             }
 
-                if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
-                {
+            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved||orderHeader.PaymentStatus==StaticDetails.PaymentStatusPartiallyRefunded)
+            {
                     bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail, orderVM.Quantity);
 
                     if (!isCancelled)
@@ -311,25 +320,30 @@ namespace ECommerceApp.Areas.Customer.Controllers
                     }
                 
             }
-            
-            
-            if (orderDetail.Quantity > orderVM.Quantity)
+            var canceledOrderDetail = new OrderDetail
+            {
+                OrderHeaderId = orderDetail.OrderHeaderId,
+                ProductId = orderDetail.ProductId,
+                Quantity = orderVM.Quantity,
+                Price = orderDetail.Price,
+                IsActive = false 
+            };
+            _unitOfWork.OrderDetail.Add(canceledOrderDetail);
+            if(orderDetail.Quantity>orderVM.Quantity)
             {
                 orderDetail.Quantity -= orderVM.Quantity;
                 _unitOfWork.OrderDetail.Update(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
             else
             {
                 _unitOfWork.OrderDetail.Remove(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
-            _unitOfWork.OrderHeader.Update(orderHeader);
             _unitOfWork.Save();
-           
-            var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id);
-            if (!remainingItems.Any())
+
+            var activeItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id && u.IsActive);
+            if (!activeItems.Any())
             {
+                
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusCancelled, StaticDetails.PaymentStatusRefunded);
             }
             else
@@ -362,7 +376,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
             }
 
 
-            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
+            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved||orderHeader.PaymentStatus==StaticDetails.PaymentStatusPartiallyRefunded)
             {
                 bool isReturned = await _orderProcessingService.ReturnOrder(orderHeader, orderDetail, orderVM.Quantity);
 
@@ -372,24 +386,30 @@ namespace ECommerceApp.Areas.Customer.Controllers
                     return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
                 }
             }
-
+            var returnedOrderDetail = new OrderDetail
+            {
+                OrderHeaderId = orderDetail.OrderHeaderId,
+                ProductId = orderDetail.ProductId,
+                Quantity = orderVM.Quantity,
+                Price = orderDetail.Price,
+                IsActive = false
+            };
+            _unitOfWork.OrderDetail.Add(returnedOrderDetail);
             if (orderDetail.Quantity > orderVM.Quantity)
             {
                 orderDetail.Quantity -= orderVM.Quantity;
                 _unitOfWork.OrderDetail.Update(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
             else
             {
                 _unitOfWork.OrderDetail.Remove(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
-            _unitOfWork.OrderHeader.Update(orderHeader);
             _unitOfWork.Save();
 
-            var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id);
-            if (!remainingItems.Any())
+            var activeItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id && u.IsActive);
+            if (!activeItems.Any())
             {
+
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusReturned, StaticDetails.PaymentStatusRefunded);
             }
             else

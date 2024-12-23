@@ -105,18 +105,26 @@
                                             ? @ViewBag.ShippingCharge.ToString("C")
                                             : "Free")
                                     </strong>
-                                </li>
                                 <li class="list-group-item d-flex justify-content-between bg-light">
                                     <small class="text-info">Total (USD): </small>
                                     <strong class="text-info" id="OrderTotalDisplay">
-                                        @(
-                                            (Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal
-                                            ? Model.orderHeader.DiscountedTotal
-                                            : Model.orderHeader.OrderTotal)
-                                            + (Model.orderHeader.OrderTotal < @ViewBag.FreeShippingAmount ? @ViewBag.ShippingCharge : 0)
-                                            )
+                                            @{
+                                                var discountedTotal = Model.orderHeader.DiscountedTotal < Model.orderHeader.OrderTotal
+                                                ? Model.orderHeader.DiscountedTotal
+                                                : Model.orderHeader.OrderTotal;
+
+                                                var couponDiscount = Model.Coupon != null
+                                                ? discountedTotal * ((double)Model.Coupon.DiscountPercentage / 100.0)
+                                                : 0;
+
+                                                var finalTotal = discountedTotal - couponDiscount
+                                                + (Model.orderHeader.OrderTotal < ViewBag.FreeShippingAmount ? ViewBag.ShippingCharge : 0);
+
+                                                @finalTotal.ToString("C")
+                                            }
                                     </strong>
                                 </li>
+
                                 
                             </ul>
 

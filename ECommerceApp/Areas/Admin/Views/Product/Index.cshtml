@@ -88,27 +88,25 @@
                 $('#myTable').DataTable().destroy();
             }
             
-
             $('#myTable').DataTable({
                 "ajax": "/admin/product/getproducts?sortorder=" + sortorder,
                 "processing": true,
-                "serverSide": true,
-                "searching": true,
+                
                 "responsive": true,
                 "ordering": false,
                 "error": function (xhr, error, code) {
                     console.error("AJAX error:", error, code, xhr.responseText);
                 },
                 "columns": [
-                    { "data": "name" },
-                    { "data": "description" },
-                    { "data": "price" },
-                    { "data": "category.name" },
-                    { "data": "product_Quantity" },
+                    { "data": "name","autoWidth": true, "searchable": true },
+                    { "data": "description","autoWidth": true, "searchable": true },
+                    { "data": "price" ,"autoWidth": true, "searchable": true},
+                    { "data": "category.name" ,"autoWidth": true, "searchable": true},
+                    { "data": "product_Quantity","autoWidth": true, "searchable": true },
                     {
                         "data": "id",
                         "render": function (data) {
-                            return '<a href="/admin/product/edit?id=' + data + '" class="btn btn-primary">Edit</a>' +
+                            return '<a href="/admin/product/edit?id=' + data + '" class="btn btn-primary me-3">Edit</a>' +
                                 '<a href="/admin/product/delete?id=' + data + '" class="btn btn-danger">Delete</a>';
                         }
                     }
