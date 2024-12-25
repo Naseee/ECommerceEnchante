@@ -1,26 +1,43 @@
 ﻿@model ECommerceApp.Models.Category
-<form method="post">
-    <div>
-        <h2>Edit Category</h2>
-    </div>
-    <input asp-for="Id" hidden />
-    <div>
-        <label asp-for="Name" class="p-0"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name"></span>
-    </div>
-    <div>
-        <label asp-for="Description"></label>
-        <input asp-for="Description" class="form-control" />
-        <span asp-validation-for="Description"></span>
-    </div>
-    
-    <div class="row">
-        <div class="col-6">
-            <button type="submit" class="btn btn-primary form-control">Update</button>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h2>Edit Category</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <!-- Hidden ID Field -->
+                        <input asp-for="Id" type="hidden" />
+
+                        <!-- Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Category Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter category name" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Description Field -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-warning text-white w-100">Update</button>
+                            </div>
+                            <div class="col-6">
+                                <a asp-controller="Category" asp-action="Index" class="btn btn-secondary w-100">Back to List</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="col-6">
-            <a asp-controller="Category" asp-action="Index" class="btn btn-dark">Back To List</a>
-        </div>
     </div>
-</form>
+</div>

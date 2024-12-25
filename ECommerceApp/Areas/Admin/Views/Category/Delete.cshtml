@@ -1,27 +1,44 @@
 ﻿@model ECommerceApp.Models.Category
 
-<form method="post">
-    <div>
-        <h2>Delete Category</h2>
-    </div>
-    <input asp-for="Id" hidden />
-    <div>
-        <label asp-for="Name" class="p-0"></label>
-        <input asp-for="Name"  class="form-control" />
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white text-center">
+                    <h2>Delete Category</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <!-- Hidden ID Field -->
+                        <input asp-for="Id" type="hidden" />
 
-    </div>
-    <div>
-        <label asp-for="Description"></label>
-        <input asp-for="Description"  class="form-control" />
-        <span asp-validation-for="Description"></span>
-    </div>
+                        <!-- Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Category Name</label>
+                            <input asp-for="Name" class="form-control" readonly />
+                        </div>
 
-    <div class="row">
-        <div class="col-6">
-            <button type="submit" class="btn btn-primary form-control">Delete</button>
-        </div>
-        <div class="col-6">
-            <a asp-controller="Category" asp-action="Index" class="btn btn-dark">Back To List</a>
+                        <!-- Description Field -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" readonly></textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-danger w-100">Delete</button>
+                            </div>
+                            <div class="col-6">
+                                <a asp-controller="Category" asp-action="Index" class="btn btn-secondary w-100">Back to List</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-danger">Warning: This action cannot be undone!</small>
+                </div>
+            </div>
         </div>
     </div>
-</form>
+</div>

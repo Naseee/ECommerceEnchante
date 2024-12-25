@@ -6,6 +6,7 @@ using ECommerceApp.Repository;
 using ECommerceApp.Repository.IRepository;
 using System.IO;
 using ECommerceApp.Models.ViewModels;
+using Microsoft.EntityFrameworkCore;
 namespace ECommerceApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -48,50 +49,63 @@ namespace ECommerceApp.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                string wwwRootPath = _webHostEnvironment.WebRootPath;
-
-                if (files != null && files.Count > 0)
+                try
                 {
-                    foreach (var file in files)
+                    string wwwRootPath = _webHostEnvironment.WebRootPath;
+
+                    if (files != null && files.Count > 0)
                     {
-                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                        string productPath = Path.Combine(wwwRootPath, "images", "products", "product-" + productVM.Product.Id);
-                        string finalPath = Path.Combine(wwwRootPath, productPath);
-
-                        if (!Directory.Exists(finalPath))
+                        foreach (var file in files)
                         {
-                            Directory.CreateDirectory(finalPath);
+                            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                            string productPath = Path.Combine(wwwRootPath, "images", "products", "product-" + productVM.Product.Id);
+                            string finalPath = Path.Combine(wwwRootPath, productPath);
+
+                            if (!Directory.Exists(finalPath))
+                            {
+                                Directory.CreateDirectory(finalPath);
+                            }
+
+                            string filePath = Path.Combine(finalPath, fileName);
+
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                file.CopyTo(fileStream);
+                            }
+
+                            ProductImage productImage = new ProductImage
+                            {
+                                ImageUrl = $"/images/products/product-{productVM.Product.Id}/{fileName}",
+                                ProductId = productVM.Product.Id
+                            };
+
+
+                            if (productVM.Product.ProductImages == null)
+                            {
+                                productVM.Product.ProductImages = new List<ProductImage>();
+                            }
+                            productVM.Product.ProductImages.Add(productImage);
                         }
-
-                        string filePath = Path.Combine(finalPath, fileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            file.CopyTo(fileStream);
-                        }
-
-                        ProductImage productImage = new ProductImage
-                        {
-                            ImageUrl = $"/images/products/product-{productVM.Product.Id}/{fileName}",
-                            ProductId = productVM.Product.Id
-                        };
+                    }
 
 
-                        if (productVM.Product.ProductImages == null)
-                        {
-                            productVM.Product.ProductImages = new List<ProductImage>();
-                        }
-                        productVM.Product.ProductImages.Add(productImage);
+                    _unitOfWork.Product.Add(productVM.Product);
+                    _unitOfWork.Save();
+
+                    TempData["success"] = "Product added successfully";
+                    return RedirectToAction("Index");
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Products_Name"))
+                    {
+                        ModelState.AddModelError("Product.Name", "Product Name must be unique.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "An unexpected error occurred while adding the Product.");
                     }
                 }
-               
-               
-                _unitOfWork.Product.Add(productVM.Product);
-                _unitOfWork.Save();
-
-                TempData["success"] = "Product added successfully";
-                return RedirectToAction("Index");
-
             }
             return View(productVM);
         }

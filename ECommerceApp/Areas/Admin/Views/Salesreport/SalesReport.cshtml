@@ -72,6 +72,9 @@
                     <th>Order ID</th>
                     <th>Order Date</th>
                     <th>Customer</th>
+                    <th>Coupon Discount</th>
+                    <th>Offer Discount</th>
+                   <th>Disounted Total</th>
                     <th>Total Amount</th>
                     <th></th>
                 </tr>
@@ -83,6 +86,9 @@
                         <td>@order.OrderId</td>
                         <td>@order.OrderDate?.ToString("yyyy-MM-dd")</td>
                         <td>@order.CustomerName</td>
+                        <td>@order.CouponDiscount.ToString("C")</td>
+                        <td>@((order.TotalAmount - order.TotalDiscountedAmount - order.CouponDiscount).ToString("F2"))</td>
+                        <td>@order.TotalDiscountedAmount.ToString("C")</td>
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>
                             <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#orderDetails-@order.OrderId" aria-expanded="false" aria-controls="orderDetails-@order.OrderId">

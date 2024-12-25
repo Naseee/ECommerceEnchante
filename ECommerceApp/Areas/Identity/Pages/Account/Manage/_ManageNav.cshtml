@@ -7,7 +7,7 @@
 
 
 
-<div>
+<div class="container">
 <ul class="nav nav-pills flex-column">
     <li class="nav-item">
         <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index"><i class="fa fa-user"></i> Profile</a>
@@ -24,7 +24,29 @@
     <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData"><i class="fa fa-user-circle"></i> Personal data</a></li>
 </ul>
 </div>
+<style>
+    .nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 250px;
+        background:white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
 
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        color: black;
+        text-decoration: none;
+        font-size: 1em;
+        transition: all 0.3s ease;
+    }
+</style>
 
 
 

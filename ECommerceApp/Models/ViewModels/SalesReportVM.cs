@@ -7,6 +7,7 @@
         public string CustomerName { get; set; }
         public double TotalAmount { get; set; }
         public double TotalDiscountedAmount { get; set; }
+        public double CouponDiscount { get; set; }
         public string OrderStatus { get; set; }
 
         public List<SalesReportItemVM> Items { get; set; }

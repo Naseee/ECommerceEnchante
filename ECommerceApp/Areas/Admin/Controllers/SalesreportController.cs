@@ -104,7 +104,7 @@ namespace ShoppingCart.Areas.Admin.Controllers
 
 
             var orderStatusData = _unitOfWork.SalesReport.GetSalesReport(startdate, enddate)
-    .GroupBy(s => s.OrderStatus)  // Assuming OrderStatus is an enum or string field
+    .GroupBy(s => s.OrderStatus)  
     .Select(g => new
     {
         OrderStatus = g.Key,
@@ -143,6 +143,7 @@ namespace ShoppingCart.Areas.Admin.Controllers
             ViewBag.BestSellingCategory = bestSellingCategory;
             return View(report);
         }
+
         public IActionResult SalesReport(DateTime? startDate, DateTime? endDate ,int pageNumber = 1, int pageSize = 10)
         {
             DateTime startdate = startDate ?? DateTime.MinValue;
@@ -210,54 +211,59 @@ namespace ShoppingCart.Areas.Admin.Controllers
         public IActionResult GenerateExcel(DateTime? startDate, DateTime? endDate)
         {
           
-
             DateTime startdate = startDate ?? DateTime.MinValue;
             DateTime enddate = endDate ?? DateTime.MaxValue;
 
-            // Fetch sales report data
             var report = _unitOfWork.SalesReport.GetSalesReport(startdate, enddate);
             int totalSales = report.Count();
             double totalSalesAmount = report.Sum(u => u.TotalAmount);
+            double totalCouponDiscount = report.Sum(u => u.CouponDiscount);
             double totalDiscount = report.Sum(u => u.TotalDiscountedAmount);
 
             using (var package = new ExcelPackage())
             {
-                // Create a new worksheet
+               
                 var worksheet = package.Workbook.Worksheets.Add("Sales Report");
 
                 // Add header
                 worksheet.Cells[1, 1].Value = "Sales Report";
-                worksheet.Cells[1, 1, 1, 4].Merge = true;
-                worksheet.Cells[1, 1, 1, 4].Style.Font.Bold = true;
-                worksheet.Cells[1, 1, 1, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[1, 1, 1, 7].Merge = true;
+                worksheet.Cells[1, 1, 1, 7].Style.Font.Bold = true;
+                worksheet.Cells[1, 1, 1, 7].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                // Add column headers
-                worksheet.Cells[3, 1].Value = "Date";
-                worksheet.Cells[3, 2].Value = "Total Amount";
-                worksheet.Cells[3, 3].Value = "Discounted Amount";
-                worksheet.Cells[3, 4].Value = "Net Amount";
+                worksheet.Cells[3, 1].Value = "Order ID";
+                worksheet.Cells[3, 2].Value = "Date";
+                worksheet.Cells[3, 3].Value = "Customer Name";
+                worksheet.Cells[3, 4].Value = "Total Amount";
+                worksheet.Cells[3, 5].Value = "Discounted Amount";
+                worksheet.Cells[3, 6].Value = "Coupon Discount";
+                worksheet.Cells[3, 7].Value = "Offer Discount";
 
                 // Apply styling to headers
-                worksheet.Cells[3, 1, 3, 4].Style.Font.Bold = true;
-                worksheet.Cells[3, 1, 3, 4].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                worksheet.Cells[3, 1, 3, 7].Style.Font.Bold = true;
+                worksheet.Cells[3, 1, 3, 7].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
 
                 // Populate data
                 int row = 4;
                 foreach (var item in report)
                 {
-                    worksheet.Cells[row, 1].Value = item.OrderDate?.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 2].Value = item.TotalAmount;
-                    worksheet.Cells[row, 3].Value = item.TotalDiscountedAmount;
-                    worksheet.Cells[row, 4].Value = item.TotalAmount - item.TotalDiscountedAmount;
+                    worksheet.Cells[row, 1].Value = item.OrderId;
+                  worksheet.Cells[row, 2].Value = item.OrderDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cells[row, 3].Value = item.CustomerName;
+                   worksheet.Cells[row, 4].Value = item.TotalAmount;
+                    worksheet.Cells[row, 5].Value = item.TotalDiscountedAmount;
+                    worksheet.Cells[row, 6].Value = item.CouponDiscount;
+                   worksheet.Cells[row, 7].Value = item.TotalAmount - item.TotalDiscountedAmount-item.CouponDiscount;
                     row++;
                 }
 
                 // Add totals row
                 worksheet.Cells[row, 1].Value = "Totals";
-                worksheet.Cells[row, 2].Value = totalSalesAmount;
-                worksheet.Cells[row, 3].Value = totalDiscount;
-                worksheet.Cells[row, 4].Value = totalSalesAmount - totalDiscount;
-                worksheet.Cells[row, 1, row, 4].Style.Font.Bold = true;
+                worksheet.Cells[row, 4].Value = totalSalesAmount;
+                worksheet.Cells[row, 5].Value = totalDiscount;
+                worksheet.Cells[row, 6].Value = totalCouponDiscount;
+                worksheet.Cells[row, 7].Value = totalSalesAmount - totalDiscount - totalCouponDiscount; ;
+                worksheet.Cells[row, 1, row, 7].Style.Font.Bold = true;
 
                 // Auto-fit columns
                 worksheet.Cells.AutoFitColumns();
@@ -281,12 +287,11 @@ namespace ShoppingCart.Areas.Admin.Controllers
                     Date = g.Key.ToString(),
                     TotalSales = g.Sum(s => s.TotalAmount)
                 })
+                
                 .ToList();
             
             return Json(salesData);
             
         }
-
-
     }
 }

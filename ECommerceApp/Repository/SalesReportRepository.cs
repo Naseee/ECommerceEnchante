@@ -23,22 +23,20 @@ namespace ECommerceApp.Repository
                  OrderDate = o.OrderDate,
                  CustomerName = o.Name,
                  TotalAmount = o.OrderTotal,
-                 TotalDiscountedAmount=o.DiscountedTotal,
+                 TotalDiscountedAmount= o.DiscountedTotal < o.OrderTotal ? o.DiscountedTotal : o.OrderTotal,
+                 CouponDiscount= (double)o.CouponDiscount>0 ? (double)o.CouponDiscount : 0,
                  OrderStatus=o.OrderStatus,
                  Items = o.OrderDetails.Select(oi => new SalesReportItemVM
                  {
                      ProductName = oi.Product.Name,
                      Quantity = oi.Quantity,
                      UnitPrice=oi.Product.Price,
-                     Discount = oi.Product.DiscountedPrice > 0
-                      ? oi.Product.Price -  (double)oi.Product.DiscountedPrice
-                         : 0,
-
-                     TotalPrice = oi.Quantity * (oi.Product.DiscountedPrice > 0
-                      ?  (double)oi.Product.DiscountedPrice
-                       : oi.Price)
+                     Discount = oi.Product.Price-oi.Price,
+                     TotalPrice = oi.Quantity *oi.Price
                  }).ToList()
-             }).ToList();
+             })
+             .OrderByDescending(o=>o.OrderId)
+             .ToList();
 
             return salesReport;
         }

@@ -8,6 +8,6 @@ namespace ECommerceApp.Models.ViewModels
         [ValidateNever]
         public IEnumerable<ProductImage> ProductImages { get; set; }
         [ValidateNever]
-        public IEnumerable<Category> Categories { get; set; }
+        public IEnumerable<Category> Categories { get; set; } = new List<Category>();
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ECommerceApp.Utility;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Areas.Admin.Controllers
 {
@@ -39,17 +40,30 @@ namespace ECommerceApp.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                
-                var existingCoupon = _unitOfWork.Coupon.Get(c => c.Code == obj.Code);
-                if (existingCoupon != null)
+                try
                 {
-                    ModelState.AddModelError("Code", "Coupon code already exists.");
-                    return View(obj);
+                    var existingCoupon = _unitOfWork.Coupon.Get(c => c.Code == obj.Code);
+                    if (existingCoupon != null)
+                    {
+                        ModelState.AddModelError("Code", "Coupon code already exists.");
+                        return View(obj);
+                    }
+                    _unitOfWork.Coupon.Add(obj);
+                    _unitOfWork.Save();
+                    TempData["success"] = "Coupon added successfully.";
+                    return RedirectToAction("Index");
                 }
-                _unitOfWork.Coupon.Add(obj);
-                _unitOfWork.Save();
-                TempData["success"] = "Coupon added successfully.";
-                return RedirectToAction("Index");
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Coupons_Code"))
+                    {
+                        ModelState.AddModelError("Coupon.Code", "Coupon Code must be unique.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "An unexpected error occurred while adding the Coupon.");
+                    }
+                }
             }
 
             TempData["error"] = "Coupon creation failed.";

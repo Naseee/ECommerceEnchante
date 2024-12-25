@@ -1,9 +1,11 @@
 ﻿using ECommerceApp.Data;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApp.Models
 {
+    [Index(nameof(Name), IsUnique = true)]
     public class Category
     {
 

@@ -4,6 +4,7 @@ using ECommerceApp.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Areas.Admin.Controllers
 {
@@ -32,12 +33,26 @@ namespace ECommerceApp.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.Category.Add(obj);
-                _unitOfWork.Save();
-                TempData["success"] = " Category Added Successfully";
-                return RedirectToAction("Index");
+                try
+                {
+                    _unitOfWork.Category.Add(obj);
+                    _unitOfWork.Save();
+                    TempData["success"] = " Category Added Successfully";
+                    return RedirectToAction("Index");
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException?.Message.Contains("IX_Categories_Name") == true)
+                    {
+                        ModelState.AddModelError("Name", "Category Name must be unique.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "An unexpected error occurred while adding the Category.");
+                    }
+                }
             }
-            TempData["error"] = " Category Added Failed";
+            
             return View();
         }
 

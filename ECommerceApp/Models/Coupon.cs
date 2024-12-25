@@ -1,10 +1,12 @@
 ﻿using ECommerceApp.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.SqlServer.Server;
 using System.ComponentModel.DataAnnotations;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ECommerceApp.Models
 {
+    [Index(nameof(Code), IsUnique = true)]
     public class Coupon
     { 
     [Key]

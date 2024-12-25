@@ -2,9 +2,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using ECommerceApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Models
 {
+    [Index(nameof(Name), IsUnique = true)]
     public class Product
     {
         [Key]
