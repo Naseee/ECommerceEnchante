@@ -63,10 +63,4 @@ jobs:
           slot-name: 'Production'
           package: .
           
-     - name: Install EF Tools
-  run: dotnet tool install --global dotnet-ef
-
-- name: Apply EF Migrations
-  run: |
-    dotnet tool restore
-    dotnet ef database update --connection "Server=tcp:ecommerceappserverforlearningapp.database.windows.net,1433;Initial Catalog=ECommerceDb;User ID=ecommerceAdmin;Password=Admin123@;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+   
