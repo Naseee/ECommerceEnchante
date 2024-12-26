@@ -23,126 +23,88 @@ namespace ShoppingCart.Areas.Admin.Controllers
             _unitOfWork = unitOfWork;
             _viewEngine = viewEngine;
         }
-        public IActionResult Index(DateTime? startDate, DateTime? endDate)
+        public IActionResult Index(DateTime? startDate = null, DateTime? endDate = null)
         {
             DateTime startdate = startDate ?? DateTime.MinValue;
             DateTime enddate = endDate ?? DateTime.MaxValue;
 
-            var report = _unitOfWork.SalesReport.GetSalesReport(startdate, enddate);
-            int totalsales = report.Count();
-            double totalSalesAmount = report.Sum(u => u.TotalAmount);
+            var reportData = _unitOfWork.SalesReport.GetSalesReport(startdate, enddate);
 
-            double totalDiscount = report.Sum(u => u.TotalDiscountedAmount); ;
-            ViewBag.Totalsales = totalsales;
+            // Total Sales & Discounts
+            int totalSalesCount = reportData.Count();
+            double totalSalesAmount = reportData.Sum(u => u.TotalAmount);
+            double totalDiscount = reportData.Sum(u => u.TotalDiscountedAmount);
+
+            ViewBag.Totalsales = totalSalesCount;
             ViewBag.TotalSalesAmount = totalSalesAmount;
             ViewBag.TotalDiscount = totalDiscount;
 
+            // Date Calculations
             DateTime today = DateTime.UtcNow.Date;
             DateTime startWeekly = today.AddDays(-(int)today.DayOfWeek + 1);
-
             DateTime startMonthly = new DateTime(today.Year, today.Month, 1);
-            DateTime startAnnual = new DateTime(DateTime.UtcNow.Year, 1, 1);
-            var dailySales = _unitOfWork.SalesReport.GetSalesReport(today, enddate).Sum(u => u.TotalAmount);
-            double dailyAverage = dailySales;
-            var weeklySales = _unitOfWork.SalesReport.GetSalesReport(startWeekly, enddate).Sum(u => u.TotalAmount);
-            double weeklyAverage = weeklySales / 7.0;
-            var monthlySales = _unitOfWork.SalesReport.GetSalesReport(startMonthly, enddate).Sum(u => u.TotalAmount);
-            int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
-            double monthlyAverage = monthlySales / daysInMonth;
-            var anualSales = _unitOfWork.SalesReport.GetSalesReport(startAnnual, enddate).Sum(u => u.TotalAmount);
-            int daysInYear = (enddate - startAnnual).Days + 1;
-            double anualAverage = anualSales / daysInYear;
-            ViewBag.DailyAverage = dailyAverage;
-            ViewBag.WeeklyAverage = weeklyAverage;
-            ViewBag.MonthlyAverage = monthlyAverage;
-            ViewBag.AnnualAverage = anualAverage;
-            
-            var totalSalesData = report.GroupBy(s => s.OrderDate?.Date).Select(g => new
-            {
-                Date = g.Key.Value.ToString("yyyy-MM-dd"),
-                TotalSales = g.Sum(s => s.TotalAmount)
-            }).ToList();
+            DateTime startAnnual = new DateTime(today.Year, 1, 1);
 
            
 
-            var weeklyData = _unitOfWork.SalesReport.GetSalesReport(startMonthly, today)
-                            .GroupBy(s => CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(
-                              s.OrderDate.Value,CalendarWeekRule.FirstDay,DayOfWeek.Monday)) // Group by week number
-                            .Select(g => new
-                             {
-                                Week = "Week " + g.Key, 
-                                TotalSales = g.Sum(s => s.TotalAmount)
-                             })
-                            .ToList();
+            // Sales Data Grouping
+            var totalSalesData = reportData
+                .Where(s => s.OrderDate.HasValue)
+                .GroupBy(s => s.OrderDate.Value.Date)
+                .Select(g => new { Date = g.Key.ToString("yyyy-MM-dd"), TotalSales = g.Sum(s => s.TotalAmount) })
+                .ToList();
 
+            var weeklyData = reportData
+                .Where(s => s.OrderDate >= startMonthly && s.OrderDate <= today)
+                .GroupBy(s => CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(s.OrderDate.Value, CalendarWeekRule.FirstDay, DayOfWeek.Monday))
+                .Select(g => new { Week = "Week " + g.Key, TotalSales = g.Sum(s => s.TotalAmount) })
+                .ToList();
 
-            var monthlyData = _unitOfWork.SalesReport.GetSalesReport(startAnnual, today)
-                             .GroupBy(s => new
-                               {
-                                  Year = s.OrderDate.Value.Year,
-                                  Month = s.OrderDate.Value.Month
-                               })
-                              .Select(g => new
-                                {
-                                  Month = $"{g.Key.Year}-{g.Key.Month.ToString("D2")}", // Format as "YYYY-MM"
-                                  TotalSales = g.Sum(s => s.TotalAmount)
-                                })
-                              .ToList();
-         var annualData = _unitOfWork.SalesReport.GetSalesReport(startAnnual, today)
-                          .GroupBy(s => s.OrderDate.Value.Year) // Group by year
-                          .Select(g => new
-                           {
-                              Year = g.Key.ToString(), // Use the year as the label
-                              TotalSales = g.Sum(s => s.TotalAmount) // Sum the total sales for the year
-                           })
-                       .ToList();
+            var monthlyData = reportData
+                .Where(s => s.OrderDate >= startAnnual && s.OrderDate <= today)
+                .GroupBy(s => new { Year = s.OrderDate.Value.Year, Month = s.OrderDate.Value.Month })
+                .Select(g => new { Month = $"{g.Key.Year}-{g.Key.Month:D2}", TotalSales = g.Sum(s => s.TotalAmount) })
+                .ToList();
 
+            var annualData = reportData
+                .Where(s => s.OrderDate >= startAnnual && s.OrderDate <= today)
+                .GroupBy(s => s.OrderDate.Value.Year)
+                .Select(g => new { Year = g.Key.ToString(), TotalSales = g.Sum(s => s.TotalAmount) })
+                .ToList();
 
-            ViewBag.TotalSalesData = totalSalesData.Select(item => new { Date = item.Date, TotalSales = item.TotalSales });
-            ViewBag.MonthlySalesData = weeklyData.Select(item => new { Week = item.Week, TotalSales = item.TotalSales });
-            ViewBag.AnnualSalesData = monthlyData.Select(item => new { Month = item.Month, TotalSales = item.TotalSales });
+            ViewBag.TotalSalesData = totalSalesData;
+            ViewBag.MonthlySalesData = weeklyData;
+            ViewBag.AnnualSalesData = monthlyData;
 
+            // Order Status Data
+            var orderStatusData = reportData
+                .GroupBy(s => s.OrderStatus)
+                .Select(g => new { OrderStatus = g.Key, OrderCount = g.Count(), TotalAmount = g.Sum(s => s.TotalAmount) })
+                .ToList();
 
-            var orderStatusData = _unitOfWork.SalesReport.GetSalesReport(startdate, enddate)
-    .GroupBy(s => s.OrderStatus)  
-    .Select(g => new
-    {
-        OrderStatus = g.Key,
-        OrderCount = g.Count(),
-        TotalAmount = g.Sum(s => s.TotalAmount)
-    })
-    .ToList();
             var orderStatusCounts = orderStatusData.ToDictionary(x => x.OrderStatus, x => x.OrderCount);
             ViewBag.OrderStatusLabels = Newtonsoft.Json.JsonConvert.SerializeObject(orderStatusCounts.Keys);
             ViewBag.OrderStatusValues = Newtonsoft.Json.JsonConvert.SerializeObject(orderStatusCounts.Values);
-            var bestSellingProduct = _unitOfWork.OrderDetail.GetAll(null,includeProperties:"Product")
-            
+
+            // Best Selling Product & Category
+            var bestSellingProduct = _unitOfWork.OrderDetail.GetAll(null,includeProperties: "Product")
                 .GroupBy(od => od.ProductId)
-            .Select(g => new
-            {
-            ProductId = g.Key,
-            ProductName = g.FirstOrDefault().Product.Name, 
-            TotalQuantitySold = g.Sum(od => od.Quantity)
-            
-             })
-        .OrderByDescending(p => p.TotalQuantitySold) 
-        .FirstOrDefault()?.ProductName;
-            ViewBag.BestSellingProduct = bestSellingProduct;
-            var bestSellingCategory = _unitOfWork.OrderDetail.GetAll(null, includeProperties: "Product.Category")
+                .Select(g => new { ProductName = g.FirstOrDefault().Product.Name, TotalQuantitySold = g.Sum(od => od.Quantity) })
+                .OrderByDescending(p => p.TotalQuantitySold)
+                .FirstOrDefault()?.ProductName;
 
+            var bestSellingCategory = _unitOfWork.OrderDetail.GetAll(null,includeProperties: "Product.Category")
                 .GroupBy(od => od.Product.CategoryId)
-            .Select(g => new
-            {
-                CategoryId = g.Key,
-                CategoryName = g.FirstOrDefault().Product.Category.Name,
-                TotalQuantitySold = g.Sum(od => od.Quantity)
+                .Select(g => new { CategoryName = g.FirstOrDefault().Product.Category.Name, TotalQuantitySold = g.Sum(od => od.Quantity) })
+                .OrderByDescending(p => p.TotalQuantitySold)
+                .FirstOrDefault()?.CategoryName;
 
-            })
-        .OrderByDescending(p => p.TotalQuantitySold)
-        .FirstOrDefault()?.CategoryName;
+            ViewBag.BestSellingProduct = bestSellingProduct;
             ViewBag.BestSellingCategory = bestSellingCategory;
-            return View(report);
+
+            return View(reportData);
         }
+
 
         public IActionResult SalesReport(DateTime? startDate, DateTime? endDate ,int pageNumber = 1, int pageSize = 10)
         {
