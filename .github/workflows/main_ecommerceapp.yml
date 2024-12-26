@@ -54,7 +54,10 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5B156F432F2A4FFDA2B11B06A59004FB }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9A011299FF1C4FAA83C437F2FD762449 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_62015A4148CE41129266CC8A9DE93C73 }}
-
+      - name: Run EF Migrations
+        run: |
+          dotnet tool restore
+          dotnet ef database update
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -62,4 +65,5 @@ jobs:
           app-name: 'ECommerceApp'
           slot-name: 'Production'
           package: .
-          
+        
+  
