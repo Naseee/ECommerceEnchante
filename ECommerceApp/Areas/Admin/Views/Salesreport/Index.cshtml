@@ -3,17 +3,7 @@
 <div class="container-fluid">
 
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-            <form method="get" action="@Url.Action("GeneratePdf", "Salesreport", new { Area = "Admin" })" class="form-inline">
-                <input type="hidden" name="startDate" value="@Context.Request.Query["startDate"]" />
-                <input type="hidden" name="endDate" value="@Context.Request.Query["endDate"]" />
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa fa-file-pdf"></i> Download PDF
-                </button>
-            </form>
-
-        </div>
+   
 
     <!-- Content Row -->
     <div class="row">
