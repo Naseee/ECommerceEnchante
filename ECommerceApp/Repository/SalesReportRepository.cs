@@ -2,6 +2,7 @@
 using ECommerceApp.Models;
 using ECommerceApp.Models.ViewModels;
 using ECommerceApp.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 
 namespace ECommerceApp.Repository
@@ -16,28 +17,27 @@ namespace ECommerceApp.Repository
         public IEnumerable<SalesReportVM> GetSalesReport(DateTime? startDate, DateTime? endDate)
         {
             IEnumerable<SalesReportVM> salesReport = _db.OrderHeaders
-             .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-             .Select(o => new SalesReportVM
-             {
-                 OrderId = o.Id,
-                 OrderDate = o.OrderDate,
-                 CustomerName = o.Name,
-                 TotalAmount = o.OrderTotal,
-                 TotalDiscountedAmount= o.DiscountedTotal < o.OrderTotal ? o.DiscountedTotal : o.OrderTotal,
-                 CouponDiscount= (double)o.CouponDiscount>0 ? (double)o.CouponDiscount : 0,
-                 OrderStatus=o.OrderStatus,
-                 Items = o.OrderDetails.Select(oi => new SalesReportItemVM
-                 {
-                     ProductName = oi.Product.Name,
-                     Quantity = oi.Quantity,
-                     UnitPrice=oi.Product.Price,
-                     Discount = oi.Product.Price-oi.Price,
-                     TotalPrice = oi.Quantity *oi.Price
-                 }).ToList()
-             })
-             .OrderByDescending(o=>o.OrderId)
-             .ToList();
-
+    .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+    .Include(o => o.OrderDetails) // Loading only one collection here
+    .OrderByDescending(o => o.Id)
+    .Select(o => new SalesReportVM
+    {
+        OrderId = o.Id,
+        OrderDate = o.OrderDate,
+        CustomerName = o.Name,
+        TotalAmount = o.OrderTotal,
+        TotalDiscountedAmount = o.DiscountedTotal < o.OrderTotal ? o.DiscountedTotal : o.OrderTotal,
+        CouponDiscount = (double)o.CouponDiscount > 0 ? (double)o.CouponDiscount : 0,
+        OrderStatus = o.OrderStatus,
+        Items = o.OrderDetails.Select(oi => new SalesReportItemVM
+        {
+            ProductName = oi.Product.Name,
+            Quantity = oi.Quantity,
+            UnitPrice = oi.Product.Price,
+            Discount = oi.Product.Price - oi.Price,
+            TotalPrice = oi.Quantity * oi.Price
+        }).ToList()
+    }).ToList();
             return salesReport;
         }
 
