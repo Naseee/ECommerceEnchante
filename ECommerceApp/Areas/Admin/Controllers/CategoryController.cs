@@ -101,5 +101,6 @@ namespace ECommerceApp.Areas.Admin.Controllers
             TempData["success"] = " Category Deleted Successfully";
             return RedirectToAction("Index");
         }
+
     }
 }
