@@ -57,8 +57,8 @@ namespace ECommerceApp.Services
             var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id&&u.IsActive==true);
             if (remainingItems.Count() == 1 && remainingItems.First().Quantity == quantity)
             {
-                refundAmount -= (decimal)orderHeader.CouponDiscount;
-                refundAmount += (decimal)orderHeader.ShippingCharge; 
+                refundAmount -= orderHeader.CouponDiscount.HasValue ? (decimal)orderHeader.CouponDiscount : 0;
+                refundAmount += orderHeader.ShippingCharge.HasValue? (decimal)orderHeader.ShippingCharge :0; 
             }
             
 
@@ -72,12 +72,17 @@ namespace ECommerceApp.Services
         {
             try
             {
+                if (!orderDetail.IsApprovedForReturn)
+                {
+                    _logger.LogInformation("Return request is pending admin approval.");
+                    return false;
+                }
                 var refundAmount = (decimal)(orderDetail.Price * quantity);
                 var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id&&u.IsActive==true);
                 if (remainingItems.Count() == 1 && remainingItems.First().Quantity == quantity)
                 {
-                    refundAmount -= (decimal)orderHeader.CouponDiscount;
-                    refundAmount += (decimal)orderHeader.ShippingCharge;
+                    refundAmount -= orderHeader.CouponDiscount.HasValue ? (decimal)orderHeader.CouponDiscount : 0;
+                    refundAmount += orderHeader.ShippingCharge.HasValue ? (decimal)orderHeader.ShippingCharge : 0;
                 }
 
                 bool refundSuccess = await ProcessRefund(orderHeader, refundAmount);
@@ -135,7 +140,6 @@ namespace ECommerceApp.Services
                     }
                 }
 
-                
                 orderHeader.RefundedAmount += (double)refundableAmount;
                 _unitOfWork.OrderHeader.Update(orderHeader);
                 _unitOfWork.Save();

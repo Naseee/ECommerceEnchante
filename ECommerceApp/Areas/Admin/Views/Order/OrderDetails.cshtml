@@ -1,6 +1,25 @@
 ﻿@model ECommerceApp.ViewModels.Models.OrderVM
 @using ECommerceApp.Utility
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["success"]
+    </div>
+}
 
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["error"]
+    </div>
+}
+
+@if (TempData["info"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["info"]
+    </div>
+}
 <form method="post">
     <input asp-for="OrderHeader.Id" hidden />
     <div class="container my-5">
@@ -58,6 +77,8 @@
                             <h5 class="text-info">Order Items:</h5>
                             @foreach (var item in Model.OrderDetail)
                             {
+                                <input type="hidden" name="OrderVM.OrderHeader.Id" value="@Model.OrderHeader.Id" />
+                                <input type="hidden" name="OrderVM.ProductId" value="@item.ProductId" />
                                 <div class="row border-bottom pb-3 mb-3">
                                     <div class="col-lg-2 text-center py-2">
                                         @if (item.Product.ProductImages != null && item.Product.ProductImages.Count > 0)
@@ -75,14 +96,37 @@
                                         <p><strong>Total:</strong> @((item.Price * item.Quantity).ToString("C"))</p>
                                     </div>
                                     <div class="col-lg-4 text-center">
-                                        @if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled &&
+                                         @if (!item.IsActive)
+                                            {
+                                                <span class="badge bg-danger text-white py-2 px-3"></span>
+                                              }
+                                        else if (Model.OrderHeader.OrderStatus != StaticDetails.StatusCancelled &&
                                        Model.OrderHeader.OrderStatus != StaticDetails.StatusShipped &&
                                        Model.OrderHeader.OrderStatus != StaticDetails.StatusDelivered &&
                                        Model.OrderHeader.OrderStatus != StaticDetails.StatusReturned&&
                                         Model.OrderHeader.OrderStatus!=StaticDetails.StatusPartiallyReturned&&item.IsActive)
                                         {
+                                            <div class="mb-2">
+                              <label for="quantityToCancel" class="form-label">Quantity to Cancel</label>
+                <input type="number" name="OrderVM.Quantity" id="quantityToCancel" class="form-control" min="1" max="@item.Quantity" value="1" required />
+            </div>
                                             <button asp-action="CancelOrder" type="submit" class="btn btn-danger form-control my-1">Cancel</button>
                                         }
+                                        
+                                       else if(Model.OrderHeader.OrderStatus==StaticDetails.StatusDelivered||
+                                        Model.OrderHeader.OrderStatus==StaticDetails.StatusPartiallyReturned&&
+                                         Model.OrderHeader.DeliveryDate < DateTime.Today.AddDays(7))
+                                        {
+                                            <div class="mb-2">
+                <label for="quantityToCancel" class="form-label">Quantity to Cancel</label>
+                <input type="number" name="OrderVM.Quantity" id="quantityToCancel" class="form-control" min="1" max="@item.Quantity" value="1" required />
+            </div>
+                                            <button asp-action="Return" type="submit" class="btn btn-danger form-control my-1">Approve Return</button> 
+                                        }
+                                        else if (item.IsApprovedForReturn)
+    {
+        <span class="badge bg-success text-white py-2 px-3">Approved</span>
+    }
                                     </div>
                                 </div>
                             }

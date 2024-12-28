@@ -1,6 +1,26 @@
 ﻿@model ECommerceApp.ViewModels.Models.OrderVM
 
 @using ECommerceApp.Utility
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["success"]
+    </div>
+}
+
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["error"]
+    </div>
+}
+
+@if (TempData["info"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["info"]
+    </div>
+}
 <link rel="stylesheet" href="~/css/paymentmethodstyle.css" asp-append-version="true" />
 
     <br />

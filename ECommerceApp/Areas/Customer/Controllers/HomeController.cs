@@ -375,9 +375,13 @@ namespace ECommerceApp.Areas.Customer.Controllers
                 return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
             }
 
-
             if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved||orderHeader.PaymentStatus==StaticDetails.PaymentStatusPartiallyRefunded)
             {
+                if (!orderDetail.IsApprovedForReturn)
+                {
+                    TempData["info"] = "Return request is pending admin approval.";
+                    return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
+                }
                 bool isReturned = await _orderProcessingService.ReturnOrder(orderHeader, orderDetail, orderVM.Quantity);
 
                 if (!isReturned)
@@ -420,7 +424,7 @@ namespace ECommerceApp.Areas.Customer.Controllers
 
             _unitOfWork.Save();
 
-            TempData["success"] = "Product has been successfully canceled.";
+            TempData["success"] = "Product has been successfully Returned.";
             return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
         }
     }

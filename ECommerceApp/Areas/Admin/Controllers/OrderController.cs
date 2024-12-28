@@ -145,43 +145,55 @@ namespace ECommerceApp.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> Cancelorder(OrderVM orderVM)
         {
-            var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "Address");
-            var orderDetails = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id).ToList();
+            var orderHeader = _unitOfWork.OrderHeader.Get(
+                u => u.Id == orderVM.OrderHeader.Id
 
-            if (orderDetails == null || !orderDetails.Any())
+            );
+            var orderDetail = _unitOfWork.OrderDetail.Get(
+                u => u.OrderHeaderId == orderHeader.Id && u.ProductId == orderVM.ProductId
+            );
+
+            if (orderDetail == null)
             {
-                TempData["error"] = "No products found in this order.";
-                return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
+                TempData["error"] = "Product not found in this order.";
+                return RedirectToAction("OrderDetails", new { id = orderHeader.Id });
             }
-            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved)
+
+            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved || orderHeader.PaymentStatus == StaticDetails.PaymentStatusPartiallyRefunded)
             {
-                
-                bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail,orderVM.Quantity);
+                bool isCancelled = await _orderProcessingService.CancelApprovedOrder(orderHeader, orderDetail, orderVM.Quantity);
 
                 if (!isCancelled)
                 {
                     TempData["error"] = "An error occurred while canceling the order. Please try again later.";
-                    return RedirectToAction("UserOrderDetails", new { id = orderHeader.Id });
+                    return RedirectToAction("OrderDetails", new { id = orderHeader.Id });
                 }
 
             }
+            var canceledOrderDetail = new OrderDetail
+            {
+                OrderHeaderId = orderDetail.OrderHeaderId,
+                ProductId = orderDetail.ProductId,
+                Quantity = orderVM.Quantity,
+                Price = orderDetail.Price,
+                IsActive = false
+            };
+            _unitOfWork.OrderDetail.Add(canceledOrderDetail);
             if (orderDetail.Quantity > orderVM.Quantity)
             {
                 orderDetail.Quantity -= orderVM.Quantity;
                 _unitOfWork.OrderDetail.Update(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
             else
             {
                 _unitOfWork.OrderDetail.Remove(orderDetail);
-                orderHeader.OrderTotal -= orderDetail.Price;
             }
-            _unitOfWork.OrderHeader.Update(orderHeader);
             _unitOfWork.Save();
 
-            var remainingItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id);
-            if (!remainingItems.Any())
+            var activeItems = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderHeader.Id && u.IsActive);
+            if (!activeItems.Any())
             {
+
                 _unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, StaticDetails.StatusCancelled, StaticDetails.PaymentStatusRefunded);
             }
             else
@@ -192,11 +204,35 @@ namespace ECommerceApp.Areas.Admin.Controllers
 
             _unitOfWork.Save();
 
-
-
-            TempData["success"] = "Order has been successfully canceled.";
+            TempData["success"] = "Product has been successfully canceled.";
             return RedirectToAction("OrderDetails", new { id = orderHeader.Id });
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Return(OrderVM orderVM)
+        {
+            var orderHeader = _unitOfWork.OrderHeader.Get(
+                u => u.Id == orderVM.OrderHeader.Id
 
+            );
+            var orderDetail = _unitOfWork.OrderDetail.Get(
+                u => u.OrderHeaderId == orderHeader.Id && u.ProductId == orderVM.ProductId
+            );
+
+            if (orderDetail == null)
+            {
+                TempData["error"] = "Product not found in this order.";
+                return RedirectToAction("OrderDetails", new { id = orderHeader.Id });
+            }
+
+            if (orderHeader.PaymentStatus == StaticDetails.PaymentStatusApproved || orderHeader.PaymentStatus == StaticDetails.PaymentStatusPartiallyRefunded)
+            {
+                orderDetail.IsApprovedForReturn = true;
+                _unitOfWork.OrderDetail.Update(orderDetail);
+                _unitOfWork.Save();
+            }
+
+            return RedirectToAction("OrderDetails", new { id = orderHeader.Id });
         }
         [HttpGet]
         public IActionResult GetOrderList(string status)

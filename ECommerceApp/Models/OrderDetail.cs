@@ -21,5 +21,6 @@ namespace ECommerceApp.Models
         public int Quantity { get; set; }
         public double Price { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsApprovedForReturn { get; set; }
     }
 }
