@@ -18,13 +18,14 @@ namespace ECommerceApp.Repository
         {
             IEnumerable<SalesReportVM> salesReport = _db.OrderHeaders
     .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-    .Include(o => o.OrderDetails) // Loading only one collection here
+    .Include(o => o.OrderDetails) 
     .OrderByDescending(o => o.Id)
     .Select(o => new SalesReportVM
     {
         OrderId = o.Id,
         OrderDate = o.OrderDate,
         CustomerName = o.Name,
+        ShippingCharge=(double)o.ShippingCharge >0? (double)o.ShippingCharge : 0,
         TotalAmount = o.OrderTotal,
         TotalDiscountedAmount = o.DiscountedTotal < o.OrderTotal ? o.DiscountedTotal : o.OrderTotal,
         CouponDiscount = (double)o.CouponDiscount > 0 ? (double)o.CouponDiscount : 0,

@@ -9,7 +9,7 @@
         public double TotalDiscountedAmount { get; set; }
         public double CouponDiscount { get; set; }
         public string OrderStatus { get; set; }
-
+        public double ShippingCharge { get; set; }
         public List<SalesReportItemVM> Items { get; set; }
     }
 }
