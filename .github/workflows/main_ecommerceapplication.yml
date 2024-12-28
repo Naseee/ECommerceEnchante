@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ECommerceApp
+name: Build and deploy ASP.Net Core app to Azure Web App - ECommerceApplication
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '3.1'
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -51,16 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A4373E1B9A2E4DD4A23314E457FBBDBC }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_210ED95E6F084E5E95A36741D16D7875 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E14C91C161D54236B02E3B15ED664764 }}
-     
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9E363AED7C354DA49915071AE0D6F6F9 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0336FE0626D44907B098A6102F21D8EC }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A3D907962D3D46B1A9D58CC4B351D37A }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ECommerceApp'
+          app-name: 'ECommerceApplication'
           slot-name: 'Production'
           package: .
-     
-   
+          
