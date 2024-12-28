@@ -51,10 +51,10 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A4373E1B9A2E4DD4A23314E457FBBDBC }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_210ED95E6F084E5E95A36741D16D7875 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E14C91C161D54236B02E3B15ED664764 }}
-     
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_144D7E04CED04058881270D27FD19BEA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_AD2AC815B4A94A8784892AE8B0607DB2 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2FFC452E74394771A14D38353450717F }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -62,5 +62,4 @@ jobs:
           app-name: 'ECommerceApp'
           slot-name: 'Production'
           package: .
-     
-   
+          
